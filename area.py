@@ -1,4 +1,4 @@
-2016import time
+import time
 import pyprind
 import os
 from world import Report1
