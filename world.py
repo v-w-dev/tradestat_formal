@@ -88,7 +88,7 @@ class Report1(object):
            ex.part3_toexcel_ranking_cty(self.ranking, writer, currency, money, self.periods)
 
         # adjust the format of cell in excel file using xlsxwriter
-        ex.adjust_excelformat_xlsxwriter(writer, currency, money, self.periods, self.name)
+        ex.adjust_excelformat_xlsxwriter(writer, currency, money, self.periods, self.name, self.toprank)
         writer.save()
         # adjust the format of cell in excel file using openpyxl
         ex.adjust_excelformat_openpyxl(excel_name, currency, money)

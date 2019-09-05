@@ -26,7 +26,6 @@ def denotesymbol(data, datatype):
         data.replace([np.inf, -np.inf], '∞',inplace=True)
         data.replace([np.nan, 0], '-',inplace=True)
         data.replace(0.001, '*',inplace=True)
-        pass
     return data
 
 def money_conversion(data,currency,money):
@@ -34,7 +33,7 @@ def money_conversion(data,currency,money):
     unit = {'TH':1000, 'MN':1000000}
     result = data/dollar[currency]/unit[money]
     return result
- 
+
 def part1_toexcel_generaltrade(fig, chg, writer, currency, money):
     # convert money by currency in only figures
     fig_c = money_conversion(fig, currency, money)
@@ -83,10 +82,10 @@ def part3_toexcel_ranking_cty(ranking, writer, currency, money, periods):
     worksheet.write("B5", "'"+periods[-2][2:4], fmt_bold_right)
     worksheet.write("C5", "'"+periods[-1][2:4], fmt_bold_right)
 
-def adjust_excelformat_xlsxwriter(writer, currency, money, periods, name):
+def adjust_excelformat_xlsxwriter(writer, currency, money, periods, name, noofprod):
     workbook  = writer.book
     worksheet = writer.sheets[f"{currency}_{money}"]
-    title = "HONG KONG'S TOP 10 TRADE WITH "+ name
+    title = f"HONG KONG'S TOP {noofprod} TRADE WITH "+ name
     # setting format, labels, title, annotation for cells in the excel file
     merge_format_T = workbook.add_format({'bold': 1,'align': 'center',
                     'font_name': 'Arial','font_size':10})
@@ -105,7 +104,7 @@ def adjust_excelformat_xlsxwriter(writer, currency, money, periods, name):
 
     wrap_text = workbook.add_format({'font_name': 'Arial','font_size':7.5,
                                     'text_wrap':True})
-    
+
     worksheet.set_column('A:A', 22, None)
     worksheet.set_column('B:B', 45, wrap_text)
     worksheet.set_column('C:K', None, fmt_right)
@@ -116,10 +115,12 @@ def adjust_excelformat_xlsxwriter(writer, currency, money, periods, name):
     worksheet.write("A10", '(OF WHICH RE-EXPORTED)', fmt_bold_left)
     worksheet.write("A11", 'TOTAL TRADE', fmt_bold_left)
     worksheet.write("A12", 'TRADE BALANCE', fmt_bold_left)
-    worksheet.write("B17", '-TOTAL EXPORTS-', fmt_bold)
-    worksheet.write("B30", '-DOMESTIC EXPORTS-', fmt_bold)
-    worksheet.write("B43", '-RE-EXPORTS-', fmt_bold)
-    worksheet.write("B56", '-IMPORTS-', fmt_bold)
+
+    worksheet.write(16, 1, '-TOTAL EXPORTS-', fmt_bold)
+    worksheet.write(16+noofprod+3, 1, '-DOMESTIC EXPORTS-', fmt_bold)
+    worksheet.write(16+2*(noofprod+3), 1, '-RE-EXPORTS-', fmt_bold)
+    worksheet.write(16+3*(noofprod+3), 1, '-IMPORTS-', fmt_bold)
+
     worksheet.merge_range('A1:J1', title, merge_format_T)
     worksheet.merge_range("H2:J2", f'VALUE : {currency} {money}', fmt_bold)
     worksheet.merge_range("H3:J3", '% CHANGE', fmt_bold)
@@ -156,10 +157,10 @@ def adjust_excelformat_xlsxwriter(writer, currency, money, periods, name):
     worksheet.hide_gridlines(2)
 
     # write source, symbol annotation at the end
-    worksheet.merge_range("A71:F71", "* INSIGNIFICANT            ∞ INFINITY", fmt_left)
-    worksheet.merge_range("A72:F72", "..OVER 1000% INCREASE      - NIL     N.E.S. NOT ELSEWHERE SPECIFIED", fmt_left)
-    worksheet.merge_range("A73:F73", "SOURCE: HONG KONG TRADE STATISTICS, CENSUS & STATISTICS DEPT.", fmt_left)
-    worksheet.merge_range("G73:K73", "HONG KONG TRADE DEVELOPMENT COUNCIL", fmt_left)
+    worksheet.merge_range(18+4*(noofprod+3),0,18+4*(noofprod+3),5, "* INSIGNIFICANT            ∞ INFINITY", fmt_left)
+    worksheet.merge_range(19+4*(noofprod+3),0,19+4*(noofprod+3),5, "..OVER 1000% INCREASE      - NIL     N.E.S. NOT ELSEWHERE SPECIFIED", fmt_left)
+    worksheet.merge_range(20+4*(noofprod+3),0,20+4*(noofprod+3),5, "SOURCE: HONG KONG TRADE STATISTICS, CENSUS & STATISTICS DEPT.", fmt_left)
+    worksheet.merge_range(20+4*(noofprod+3),6,20+4*(noofprod+3),8,, "HONG KONG TRADE DEVELOPMENT COUNCIL", fmt_left)
 
 def adjust_excelformat_openpyxl(excel_name, currency, money):
     wb = openpyxl.load_workbook(excel_name)
