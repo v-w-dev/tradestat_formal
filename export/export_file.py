@@ -160,7 +160,7 @@ def adjust_excelformat_xlsxwriter(writer, currency, money, periods, name, noofpr
     worksheet.merge_range(18+4*(noofprod+3),0,18+4*(noofprod+3),5, "* INSIGNIFICANT            ∞ INFINITY", fmt_left)
     worksheet.merge_range(19+4*(noofprod+3),0,19+4*(noofprod+3),5, "..OVER 1000% INCREASE      - NIL     N.E.S. NOT ELSEWHERE SPECIFIED", fmt_left)
     worksheet.merge_range(20+4*(noofprod+3),0,20+4*(noofprod+3),5, "SOURCE: HONG KONG TRADE STATISTICS, CENSUS & STATISTICS DEPT.", fmt_left)
-    worksheet.merge_range(20+4*(noofprod+3),6,20+4*(noofprod+3),8,, "HONG KONG TRADE DEVELOPMENT COUNCIL", fmt_left)
+    worksheet.merge_range(20+4*(noofprod+3),6,20+4*(noofprod+3),8, "HONG KONG TRADE DEVELOPMENT COUNCIL", fmt_left)
 
 def adjust_excelformat_openpyxl(excel_name, currency, money):
     wb = openpyxl.load_workbook(excel_name)
