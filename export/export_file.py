@@ -194,23 +194,23 @@ def adjust_excelformat_openpyxl(excel_name, currency, money):
             _cell = ws.cell(row,col)
             _cell.font = ft1
 
-    # set A:A SITC code format
-    for row in range(18,148):
+    # set A:A SITC code format, up to row no.1000
+    for row in range(18,1000):
         _cell = ws.cell(row,1)
         _cell.border = no_border
         _cell.font = ft1
         _cell.alignment = openpyxl.styles.Alignment(horizontal='left')
         _cell.number_format = '@'
 
-    # set C:I value format
-    for row in range(18,148):
+    # set C:I value format, up to row no.1000
+    for row in range(18,1000):
         for col in range(3,10,2):
             _cell = ws.cell(row,col)
             _cell.number_format = value_format
             _cell.font = ft1
 
-    # set D:K %CHG format
-    for row in range(18,148):
+    # set D:K %CHG format, up to row no.1000
+    for row in range(18,1000):
         for col in [4,6,8,10,11]:
             _cell = ws.cell(row,col)
             _cell.font = ft1
