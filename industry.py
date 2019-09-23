@@ -5,13 +5,12 @@ import time
 import xlsxwriter
 import calendar
 import sys, os
-from mergedf import exclgold, hsccit_mergedf, hscoit_mergedf, hscoccit_mergedf
-from R1_figures import country_R1_fig, country_R1_figtable
-from R1_figures import major_commodity_latest, major_commodity_table
-from R1_figures import trades_ranking_bycty, trades_ranking_bycty_multi_yrs
-from R1_figures import six_trades_ranking_bycty_multi_yrs, find_ranking
-from BSO_geography import get_geography_code, get_geography_regcnty_code
-from BSO_industry2 import get_industry_code
+from BSO.rawdata import mergedf
+from BSO.R1_figures import major_commodity_fig
+from BSO.R1_figures import trades_ranking_bycty, trades_ranking_bycty_multi_yrs
+from BSO.R1_figures import six_trades_ranking_bycty_multi_yrs, find_ranking
+from BSO.geography import get_geography_code, get_geography_regcnty_code
+from BSO.industry import get_industry_code
 
 region_dict = get_geography_code(sheet="region")
 area_dict = get_geography_code(sheet="area")
@@ -34,14 +33,6 @@ Asean_cty_name=[get_geography_code(sheet="country")[i] for i in Asean_cty_code]
 Asia_cty_name=[get_geography_code(sheet="country")[i] for i in Asia_cty_code]
 Europe_cty_name=[get_geography_code(sheet="country")[i] for i in Europe_cty_code]
 
-#print(EU_cty_name)
-#print(Asean_cty_name)
-"""
-dollar = {'HKD':1, 'USD':7.8}
-unit = {'TH':1000, 'MN':1000000}
-currency = 'HK'
-money = 'MN'
-"""
 #implement class
 class Industry(object):
     """Class for Industry to export excel data"""
@@ -97,7 +88,8 @@ class Industry(object):
 
         elif int(self.periods[-1][-2:])==12:
             tablepcc=tablefig.pct_change(axis='columns')
-
+        #change pecentage columns name
+        #print("testing")
         tablepcc.columns = [c+"_% CHG" for c in tablepcc.columns]
 
         # 1) make percentage times 100
@@ -332,7 +324,7 @@ class Industry(object):
         #saving to excel files
         original_path = os.getcwd()
         folder_path="Industry"
-        file_path=folder_path+"/"+self.currency+"/"+self.money
+        file_path=folder_path+"/"+self.periods[0]+"-"+self.periods[-1]+"/"+self.currency+"/"+self.money
         if not os.path.exists(file_path):
             os.makedirs(file_path)
         os.chdir(file_path)
@@ -392,14 +384,11 @@ if __name__ == '__main__':
 
     print(f"********* {currency} {money}")
     # input periods for the report
-    startyear, endytd = 2016, 201907
+    startyear, endytd = 2006, 2018
     # acquire hsccit data from startyear to endyear and combine them into dataframe
     # acquire hscoit data from startyear to endyear and combine them into dataframe
     # acquire hscoccit data from startyear to endyear and combine them into dataframe
-    df1,df2,df3 = hsccit_mergedf(startyear, endytd),\
-                  hscoit_mergedf(startyear, endytd),\
-                  hscoccit_mergedf(startyear, endytd)
-    df1,df2,df3 = [exclgold(x) for x in (df1,df2,df3)]
+    df1,df2,df3 = [mergedf(startyear, endytd, type) for type in ["hsccit","hscoit""hscoccit"]]
 
     # sort the periods for functions use later
     periods = sorted(set(df1.reporting_time))

@@ -5,12 +5,13 @@ import time
 import xlsxwriter
 import calendar
 import sys, os
-from BSO.rawdata import exclgold, mergedf
-from BSO.R1_figures import major_commodity_fig
-from BSO.R1_figures import trades_ranking_bycty, trades_ranking_bycty_multi_yrs
-from BSO.R1_figures import six_trades_ranking_bycty_multi_yrs, find_ranking
-from BSO.geography import get_geography_code, get_geography_regcnty_code
-from BSO.industry import get_industry_code
+from mergedf import exclgold, hsccit_mergedf, hscoit_mergedf, hscoccit_mergedf
+from R1_figures import country_R1_fig, country_R1_figtable
+from R1_figures import major_commodity_latest, major_commodity_table
+from R1_figures import trades_ranking_bycty, trades_ranking_bycty_multi_yrs
+from R1_figures import six_trades_ranking_bycty_multi_yrs, find_ranking
+from BSO_geography import get_geography_code, get_geography_regcnty_code
+from BSO_industry2 import get_industry_code
 
 region_dict = get_geography_code(sheet="region")
 area_dict = get_geography_code(sheet="area")
@@ -400,13 +401,13 @@ if __name__ == '__main__':
 
     print(f"********* {currency} {money}")
     # input periods for the report
-    startyear, endytd = 2006, 2009
+    startyear, endytd = 2016, 201907
     # acquire hsccit data from startyear to endyear and combine them into dataframe
     # acquire hscoit data from startyear to endyear and combine them into dataframe
     # acquire hscoccit data from startyear to endyear and combine them into dataframe
-    df1,df2,df3 = mergedf(startyear, endytd, "hsccit"),\
-                  mergedf(startyear, endytd, "hscoit"),\
-                  mergedf(startyear, endytd, "hscoccit")
+    df1,df2,df3 = hsccit_mergedf(startyear, endytd),\
+                  hscoit_mergedf(startyear, endytd),\
+                  hscoccit_mergedf(startyear, endytd)
     df1,df2,df3 = [exclgold(x) for x in (df1,df2,df3)]
 
     # sort the periods for functions use later
