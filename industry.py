@@ -102,72 +102,48 @@ class Industry(object):
         table_result = pd.concat([tablefig, tablepcc], axis=1).dropna(axis='columns', how='all')
         return table_result.sort_index(axis=1)
 
-    def analysis_DX_cty(self):
-        #for p in self.periods:
-        """
-        for p in self.periods:
-            print(p)
-            DX = self.df1_allperiods[p].groupby(['cty_name_destination'])['DX'].sum()
-            print(type(DX))
-            DX_sorted = DX.sort_values(ascending=False)
-            print(DX.sort_values(ascending=False),'\n')"""
-        #DXbycty= self.df1.groupby(['cty_name_destination','reporting_time'])['DX'].sum().sort_values(ascending=False)
-        #self.DXbycty = DXbycty.unstack().sort_values(self.periods[-1],ascending=False)
-        DXbycty = pd.pivot_table(self.df1, values='DX', index=['cty_name_destination'],columns=['reporting_time'],\
-                      aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
+    def analysis_bycty(self,tradetype):
+        data = self.df2 if tradetype == 'IMbyO' else self.df1
+        sorting_index = 'cty_name_origin' if tradetype == 'IMbyO' else 'cty_name_destination'
 
-        self.DXbycty_pctshare = self.analysis_share_of_overall_DX(DXbycty)
-        self.DXbycty = self.mix_conversion_with_pct(DXbycty)
+        bycty = pd.pivot_table(data, values=tradetype, index=sorting_index,columns=['reporting_time'],\
+                      aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
+        print(bycty)
+
+        bycty_pctshare = self.analysis_share_of_overall(bycty,tradetype)
+        bycty = self.mix_conversion_with_pct(bycty)
 
         #concatenate the fig, $ change and % share
-        self.DXbycty = pd.concat([self.DXbycty, self.DXbycty_pctshare], axis=1).dropna(axis='columns', how='all')
-        self.DXbycty.rename(index={'All':'All individual countries'}, inplace=True)
-        self.DXbycty.index.name = "%s %s" % (self.currency, self.money)
+        bycty = pd.concat([bycty, bycty_pctshare], axis=1).dropna(axis='columns', how='all')
+        bycty.rename(index={'All':'All individual countries'}, inplace=True)
+        bycty.index.name = "%s %s" % (self.currency, self.money)
 
-    def analysis_TX_cty(self):
-        #for p in self.periods:
-        """
-        for p in self.periods:
-            print(p)
-            TX = self.df1_allperiods[p].groupby(['cty_name_destination'])['TX'].sum()
-            print(type(TX))
-            TX_sorted = TX.sort_values(ascending=False)
-            print(TX.sort_values(ascending=False),'\n')"""
-        #TXbycty= self.df1.groupby(['cty_name_destination','reporting_time'])['TX'].sum().sort_values(ascending=False)
-        #self.TXbycty = TXbycty.unstack().sort_values(self.periods[-1],ascending=False)
-        TXbycty = pd.pivot_table(self.df1, values='TX', index=['cty_name_destination'],columns=['reporting_time'],\
+        print('here bycty')
+        print(bycty)
+        return bycty
+
+    def analysis_byregions(self,tradetype, region):
+
+        if region == 'EU': region_cty_name=EU_cty_name
+        elif region == 'Asean': region_cty_name=Asean_cty_name
+        elif region == 'Asia': region_cty_name=Asia_cty_name
+        elif region == 'Europe': region_cty_name=Europe_cty_name
+
+        data = self.df2 if tradetype == 'IMbyO' else self.df1
+        sorting_index = 'cty_name_origin' if tradetype == 'IMbyO' else 'cty_name_destination'
+
+        _df = data[data[sorting_index].isin(region_cty_name)]
+
+        byregion = pd.pivot_table(_df1, values=tradetype, index=[sorting_index],columns=['reporting_time'],\
                       aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
 
-        self.TXbycty_pctshare = self.analysis_share_of_overall_TX(TXbycty)
-        self.TXbycty = self.mix_conversion_with_pct(TXbycty)
-
-        #concatenate the fig, $ change and % share
-        self.TXbycty = pd.concat([self.TXbycty, self.TXbycty_pctshare], axis=1).dropna(axis='columns', how='all')
-        self.TXbycty.rename(index={'All':'All individual countries'}, inplace=True)
-        self.TXbycty.index.name = "%s %s" % (self.currency, self.money)
-
-    def analysis_IM_cty_byOrigin(self):
-        #for p in self.periods:
-        """
-        for p in self.periods:
-            print(p)
-            TX = self.df1_allperiods[p].groupby(['cty_name_destination'])['TX'].sum()
-            print(type(TX))
-            TX_sorted = TX.sort_values(ascending=False)
-            print(TX.sort_values(ascending=False),'\n')"""
-        #TXbycty= self.df1.groupby(['cty_name_destination','reporting_time'])['TX'].sum().sort_values(ascending=False)
-        #self.TXbycty = TXbycty.unstack().sort_values(self.periods[-1],ascending=False)
-        IMbyctyasO = pd.pivot_table(self.df2, values='IMbyO', index=['cty_name_origin'],columns=['reporting_time'],\
-                      aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
-
-        self.IMbyctyasO_pctshare = self.analysis_share_of_overall_IM(IMbyctyasO)
-        self.IMbyctyasO = self.mix_conversion_with_pct(IMbyctyasO)
-
-        #concatenate the fig, $ change and % share
-        self.IMbyctyasO = pd.concat([self.IMbyctyasO, self.IMbyctyasO_pctshare], axis=1).dropna(axis='columns', how='all')
-        self.IMbyctyasO.rename(index={'All':'All individual countries'}, inplace=True)
-        self.IMbyctyasO.index.name = "%s %s" % (self.currency, self.money)
-
+        #print(byregion)
+        #print(self.TXbyAsean)
+        byregion_pctshare = self.analysis_share_of_overall(byregion,tradetype)
+        byregion = self.mix_conversion_with_pct(byregion)
+        byregion = pd.concat([byregion, byregion_pctshare], axis=1).dropna(axis='columns', how='all')
+        byregion.rename(index={'All':region}, inplace=True)
+        byregion.index.name = "%s %s" % (self.currency, self.money)
 
     def analysis_TX_regions(self):
         #self.TXbyEU = self.df1[self.df1['cty_name_destination'].isin(EU_cty_name)]
@@ -185,19 +161,19 @@ class Industry(object):
 
         #print(self.TXbyEU)
         #print(self.TXbyAsean)
-        self.TXbyEU_pctshare = self.analysis_share_of_overall_TX(TXbyEU)
+        self.TXbyEU_pctshare = self.analysis_share_of_overall(TXbyEU,'TX')
         self.TXbyEU = self.mix_conversion_with_pct(TXbyEU)
         self.TXbyEU = pd.concat([self.TXbyEU, self.TXbyEU_pctshare], axis=1).dropna(axis='columns', how='all')
         self.TXbyEU.rename(index={'All':'EU'}, inplace=True)
         self.TXbyEU.index.name = "%s %s" % (self.currency, self.money)
 
-        self.TXbyAsean_pctshare = self.analysis_share_of_overall_TX(TXbyAsean)
+        self.TXbyAsean_pctshare = self.analysis_share_of_overall(TXbyAsean,'TX')
         self.TXbyAsean = self.mix_conversion_with_pct(TXbyAsean)
         self.TXbyAsean = pd.concat([self.TXbyAsean, self.TXbyAsean_pctshare], axis=1).dropna(axis='columns', how='all')
         self.TXbyAsean.rename(index={'All':'ASEAN'}, inplace=True)
         self.TXbyAsean.index.name = "%s %s" % (self.currency, self.money)
 
-        self.TXbyAsia_pctshare = self.analysis_share_of_overall_TX(TXbyAsia)
+        self.TXbyAsia_pctshare = self.analysis_share_of_overall(TXbyAsia,'TX')
         self.TXbyAsia = self.mix_conversion_with_pct(TXbyAsia)
         self.TXbyAsia = pd.concat([self.TXbyAsia, self.TXbyAsia_pctshare], axis=1).dropna(axis='columns', how='all')
         self.TXbyAsia.rename(index={'All':'ASIA'}, inplace=True)
@@ -219,19 +195,19 @@ class Industry(object):
 
         #print(self.DXbyEU)
         #print(self.DXbyAsean)
-        self.DXbyEU_pctshare = self.analysis_share_of_overall_DX(DXbyEU)
+        self.DXbyEU_pctshare = self.analysis_share_of_overall(DXbyEU,'DX')
         self.DXbyEU = self.mix_conversion_with_pct(DXbyEU)
         self.DXbyEU = pd.concat([self.DXbyEU, self.DXbyEU_pctshare], axis=1).dropna(axis='columns', how='all')
         self.DXbyEU.rename(index={'All':'EU'}, inplace=True)
         self.DXbyEU.index.name = "%s %s" % (self.currency, self.money)
 
-        self.DXbyAsean_pctshare = self.analysis_share_of_overall_DX(DXbyAsean)
+        self.DXbyAsean_pctshare = self.analysis_share_of_overall(DXbyAsean, 'DX')
         self.DXbyAsean = self.mix_conversion_with_pct(DXbyAsean)
         self.DXbyAsean = pd.concat([self.DXbyAsean, self.DXbyAsean_pctshare], axis=1).dropna(axis='columns', how='all')
         self.DXbyAsean.rename(index={'All':'ASEAN'}, inplace=True)
         self.DXbyAsean.index.name = "%s %s" % (self.currency, self.money)
 
-        self.DXbyAsia_pctshare = self.analysis_share_of_overall_DX(DXbyAsia)
+        self.DXbyAsia_pctshare = self.analysis_share_of_overall(DXbyAsia, 'DX')
         self.DXbyAsia = self.mix_conversion_with_pct(DXbyAsia)
         self.DXbyAsia = pd.concat([self.DXbyAsia, self.DXbyAsia_pctshare], axis=1).dropna(axis='columns', how='all')
         self.DXbyAsia.rename(index={'All':'ASIA'}, inplace=True)
@@ -245,80 +221,50 @@ class Industry(object):
         IMbyEurope = pd.pivot_table(Europe_df2, values='IMbyO', index=['cty_name_origin'],columns=['reporting_time'],\
                       aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
 
-        self.IMbyEurope_pctshare = self.analysis_share_of_overall_IM(IMbyEurope)
+        self.IMbyEurope_pctshare = self.analysis_share_of_overall(IMbyEurope,'IMbyO')
         self.IMbyEurope = self.mix_conversion_with_pct(IMbyEurope)
         self.IMbyEurope = pd.concat([self.IMbyEurope, self.IMbyEurope_pctshare], axis=1).dropna(axis='columns', how='all')
         self.IMbyEurope.rename(index={'All':'EUROPE'}, inplace=True)
         self.IMbyEurope.index.name = "%s %s" % (self.currency, self.money)
 
-
-    def analysis_TX_products(self, codetypeanddigit1, codetypeanddigit2=None, codetypeanddigit3=None):
+    def analysis_byproducts(self, tradetype, codetypeanddigit1, codetypeanddigit2=None, codetypeanddigit3=None):
         self.codetypeanddigit=[codetypeanddigit1, codetypeanddigit2, codetypeanddigit3]
 
         print('hi', self.codetypeanddigit,'\n')
+        data = self.df2 if tradetype == 'IMbyO' else self.df1
 
         if codetypeanddigit2==None and codetypeanddigit3==None:
-            TX_product = pd.pivot_table(self.df1, values='TX', index=[codetypeanddigit1],columns=['reporting_time'],\
+            byproduct = pd.pivot_table(data, values=tradetype, index=[codetypeanddigit1],columns=['reporting_time'],\
                                   aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
 
         elif codetypeanddigit3==None:
-            TX_product = pd.pivot_table(self.df1, values='TX', index=[codetypeanddigit1,codetypeanddigit2],columns=['reporting_time'],\
+            byproduct = pd.pivot_table(data, values=tradetype, index=[codetypeanddigit1,codetypeanddigit2],columns=['reporting_time'],\
                                   aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
 
         else:
-            TX_product = pd.pivot_table(self.df1, values='TX', index=[codetypeanddigit1,codetypeanddigit2,codetypeanddigit3],columns=['reporting_time'],\
+            byproduct = pd.pivot_table(data, values=tradetype, index=[codetypeanddigit1,codetypeanddigit2,codetypeanddigit3],columns=['reporting_time'],\
                                   aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
 
-        self.TXbyproduct_pctshare = self.analysis_share_of_overall_TX(TX_product)
-        self.TXbyproduct = self.mix_conversion_with_pct(TX_product)
-        self.TXbyproduct = pd.concat([self.TXbyproduct, self.TXbyproduct_pctshare], axis=1).dropna(axis='columns', how='all')
+        byproduct_pctshare = self.analysis_share_of_overall(byproduct,tradetype)
+        byproduct = self.mix_conversion_with_pct(byproduct)
+        byproduct = pd.concat([byproduct, byproduct_pctshare], axis=1).dropna(axis='columns', how='all')
 
-    def analysis_DX_products(self, codetypeanddigit1, codetypeanddigit2=None, codetypeanddigit3=None):
-        self.codetypeanddigit=[codetypeanddigit1, codetypeanddigit2, codetypeanddigit3]
+        return byproduct
 
-        print('hi', self.codetypeanddigit,'\n')
+    def analysis_share_of_overall(self, tabledata, tradetype):
+        if tradetype == 'DX':
+            tradelabel = "Domestic Exports"
+        elif tradetype == 'TX':
+            tradelabel = "Total Exports"
+        elif tradetype == 'IMbyO':
+            tradelabel = "Imports"
+        print(tradelabel)
 
-        if codetypeanddigit2==None and codetypeanddigit3==None:
-            DX_product = pd.pivot_table(self.df1, values='DX', index=[codetypeanddigit1],columns=['reporting_time'],\
-                                  aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
-
-        elif codetypeanddigit3==None:
-            DX_product = pd.pivot_table(self.df1, values='DX', index=[codetypeanddigit1,codetypeanddigit2],columns=['reporting_time'],\
-                                  aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
-
-        else:
-            DX_product = pd.pivot_table(self.df1, values='DX', index=[codetypeanddigit1,codetypeanddigit2,codetypeanddigit3],columns=['reporting_time'],\
-                                  aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
-
-        self.DXbyproduct_pctshare = self.analysis_share_of_overall_DX(DX_product)
-        self.DXbyproduct = self.mix_conversion_with_pct(DX_product)
-        self.DXbyproduct = pd.concat([self.DXbyproduct, self.DXbyproduct_pctshare], axis=1).dropna(axis='columns', how='all')
-
-    def analysis_share_of_overall_DX(self, tabledata):
-        #print("hi",self.table1)
-        table = tabledata/self.table1.loc["Domestic Exports"]*100
+        table = tabledata/self.table1.loc[tradelabel]*100
         #change %share columns name
         #print("testing")
-        table.columns = [c+"_% Share of overall DX" for c in table.columns]
+        table.columns = [c+f"_% Share of overall {tradetype}" for c in table.columns]
         return table
-
-
-    def analysis_share_of_overall_TX(self, tabledata):
-        #print("hi",self.table1)
-        table = tabledata/self.table1.loc["Total Exports"]*100
-        #change %share columns name
-        #print("testing")
-        table.columns = [c+"_% Share of overall TX" for c in table.columns]
-        return table
-
-    def analysis_share_of_overall_IM(self, tabledata):
-        #print("hi",self.table1)
-        table = tabledata/self.table1.loc["Imports"]*100
-        #change %share columns name
-        #print("testing")
-        table.columns = [c+"_% Share of overall IM" for c in table.columns]
-        return table
-
 
     def export_to_excel(self,numberofdecimal, periodsdata=False):
         #saving to excel files
@@ -384,11 +330,11 @@ if __name__ == '__main__':
 
     print(f"********* {currency} {money}")
     # input periods for the report
-    startyear, endytd = 2006, 2018
+    startyear, endytd = 2016, 201907
     # acquire hsccit data from startyear to endyear and combine them into dataframe
     # acquire hscoit data from startyear to endyear and combine them into dataframe
     # acquire hscoccit data from startyear to endyear and combine them into dataframe
-    df1,df2,df3 = [mergedf(startyear, endytd, type) for type in ["hsccit","hscoit""hscoccit"]]
+    df1,df2,df3 = [mergedf(startyear, endytd, type) for type in ["hsccit","hscoit","hscoccit"]]
 
     # sort the periods for functions use later
     periods = sorted(set(df1.reporting_time))
@@ -412,8 +358,8 @@ if __name__ == '__main__':
     #export the overall data excel file
     if overall:
         writer = pd.ExcelWriter(f'overall.xlsx')
-        #df1.to_excel(writer,"df1")
-        #df2.to_excel(writer,"df2")
+        df1.to_excel(writer,"df1")
+        df2.to_excel(writer,"df2")
         df3.to_excel(writer,"df3")
         writer.save()
 
@@ -487,21 +433,28 @@ if __name__ == '__main__':
         #print(industrycode[k]['class'].df_table1(),'\n')
 
         #table 2 DX, TX, IM by country
-        industrycode[k]['class'].analysis_DX_cty()
-        industrycode[k]['class'].analysis_DX_regions()
-        industrycode[k]['class'].analysis_TX_cty()
-        industrycode[k]['class'].analysis_TX_regions()
-        #break
-        industrycode[k]['class'].analysis_IM_cty_byOrigin()
-        industrycode[k]['class'].analysis_IM_regions_byOrigin()
+        industrycode[k]['class'].TXbycty=industrycode[k]['class'].analysis_bycty("TX")
+        industrycode[k]['class'].DXbycty=industrycode[k]['class'].analysis_bycty("DX")
+        industrycode[k]['class'].IMbyctyasO=industrycode[k]['class'].analysis_bycty("IMbyO")
+
+        #table 3 by region
+        industrycode[k]['class'].DXbyEU=industrycode[k]['class'].analysis_byregions('DX','EU')
+        industrycode[k]['class'].DXbyAsean=industrycode[k]['class'].analysis_byregions('DX','Asean')
+        industrycode[k]['class'].DXbyAsia=industrycode[k]['class'].analysis_byregions('DX','Asia')
+        #industrycode[k]['class'].analysis_TX_cty()
+        industrycode[k]['class'].TXbyEU=industrycode[k]['class'].analysis_byregions('TX','EU')
+        industrycode[k]['class'].TXbyAsean=industrycode[k]['class'].analysis_byregions('TX','Asean')
+        industrycode[k]['class'].TXbyAsia=industrycode[k]['class'].analysis_byregions('TX','Asia')
+
+        industrycode[k]['class'].IMbyEurope=industrycode[k]['class'].analysis_byregions('IMbyO','Europe')
 
         #table 3 TX by product
         if isinstance(commodity_digit,str):
-            industrycode[k]['class'].analysis_TX_products(commodity_digit)
-            industrycode[k]['class'].analysis_DX_products(commodity_digit)
+            industrycode[k]['class'].TXbyproduct=industrycode[k]['class'].analysis_byproducts('TX',commodity_digit)
+            industrycode[k]['class'].DXbyproduct=industrycode[k]['class'].analysis_byproducts('DX',commodity_digit)
         if isinstance(commodity_digit,list):
-            industrycode[k]['class'].analysis_TX_products(*commodity_digit)
-            industrycode[k]['class'].analysis_DX_products(*commodity_digit)
+            industrycode[k]['class'].TXbyproduct=industrycode[k]['class'].analysis_byproducts('TX',*commodity_digit)
+            industrycode[k]['class'].DXbyproduct=industrycode[k]['class'].analysis_byproducts('DX',*commodity_digit)
 
         #set decimal space
         #saving to excel files
