@@ -1,4 +1,3 @@
-import pprint
 import pandas as pd
 import numpy as np
 import time
@@ -12,6 +11,7 @@ from BSO.R1_figures import six_trades_ranking_bycty_multi_yrs, find_ranking
 from BSO.geography import get_geography_code, get_geography_regcnty_code
 from BSO.industry import get_industry_code
 
+# get region name and codes
 region_dict = get_geography_code(sheet="region")
 area_dict = get_geography_code(sheet="area")
 
@@ -33,7 +33,7 @@ Asean_cty_name=[get_geography_code(sheet="country")[i] for i in Asean_cty_code]
 Asia_cty_name=[get_geography_code(sheet="country")[i] for i in Asia_cty_code]
 Europe_cty_name=[get_geography_code(sheet="country")[i] for i in Europe_cty_code]
 
-#implement class
+# implement class
 class Industry(object):
     """Class for Industry to export excel data"""
     noofindustry=0
@@ -66,8 +66,14 @@ class Industry(object):
         RXbyCNasO = self.df3_allperiods[select_period][self.df3_allperiods[select_period].f3_origin==631].RX_O.sum()
         TX = self.df1_allperiods[select_period].TX.sum()
         IM = self.df1_allperiods[select_period].IM.sum()
+
+        TX_Q = self.df1_allperiods[select_period].TX_Q.sum()
+        DX_Q = self.df1_allperiods[select_period].DX_Q.sum()
+        RX_Q = self.df1_allperiods[select_period].RX_Q.sum()
         IMbyO_Q =self.df2_allperiods[select_period].IMbyO_Q.sum()
-        return DX, RX, RXbyCNasO, TX, IM, IMbyO_Q
+
+
+        return DX, RX, RXbyCNasO, TX, IM, TX_Q, DX_Q, RX_Q, IMbyO_Q
 
     def df_table1(self):
         self.table1_dict={}
@@ -76,9 +82,12 @@ class Industry(object):
             #print(self.table1_dict[p])
 
         self.table1=pd.DataFrame(self.table1_dict)
-        table1_idx = ["Domestic Exports", "Re-exports", "   of Chinese mainland Origin", "Total Exports", "Imports", "Imports by Origin Quantity"]
+        table1_idx = ["Domestic Exports", "Re-exports", "   of Chinese mainland Origin", "Total Exports", "Imports", \
+                    "Total Exports Quantity", "Domestic Exports Quantity", "Re-exports Quantity", "Imports by Origin Quantity"]
         self.table1.set_index([table1_idx], inplace=True)
         self.table1_result = self.mix_conversion_with_pct(self.table1)
+        self.table1_result.index.name = "%s %s" % (self.currency, self.money)
+
         #print(self.table1_result)
 
     def mix_conversion_with_pct(self, tablefig):
@@ -106,12 +115,11 @@ class Industry(object):
     def analysis_bycty(self,tradetype):
         data = self.df2 if tradetype == 'IMbyO'or tradetype == 'IMbyO_Q' else self.df1
         sorting_index = 'cty_name_origin' if tradetype == 'IMbyO'or tradetype == 'IMbyO_Q' else 'cty_name_destination'
-
-        #print(f'\nhere data {tradetype}')
         #print(data)
+        #print(sorting_index)
         bycty = pd.pivot_table(data, values=tradetype, index=sorting_index,columns=['reporting_time'],\
                       aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
-        print(bycty)
+        #print(bycty)
 
         bycty_pctshare = self.analysis_share_of_overall(bycty,tradetype)
         bycty = self.mix_conversion_with_pct(bycty)
@@ -121,8 +129,6 @@ class Industry(object):
         bycty.rename(index={'All':'All individual countries'}, inplace=True)
         bycty.index.name = "%s %s" % (self.currency, self.money)
 
-        print(f'\nhere bycty {tradetype}')
-        print(bycty)
         return bycty
 
     def analysis_byregions(self,tradetype, region):
@@ -136,13 +142,10 @@ class Industry(object):
         sorting_index = 'cty_name_origin' if tradetype == 'IMbyO'or tradetype == 'IMbyO_Q' else 'cty_name_destination'
 
         _df = data[data[sorting_index].isin(region_cty_name)]
-        #print('testing df')
-        #print(_df)
+
         byregion = pd.pivot_table(_df, values=tradetype, index=[sorting_index],columns=['reporting_time'],\
                       aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
-        print(f'\ntesting region: {tradetype}')
-        print(byregion)
-        #print(self.TXbyAsean)
+
         byregion_pctshare = self.analysis_share_of_overall(byregion,tradetype)
         byregion = self.mix_conversion_with_pct(byregion)
         byregion = pd.concat([byregion, byregion_pctshare], axis=1).dropna(axis='columns', how='all')
@@ -153,12 +156,13 @@ class Industry(object):
 
     def analysis_byproducts(self, tradetype, codetypeanddigit1, codetypeanddigit2=None, codetypeanddigit3=None):
         self.codetypeanddigit=[codetypeanddigit1, codetypeanddigit2, codetypeanddigit3]
-
-        print('hi', self.codetypeanddigit,'\n')
         data = self.df2 if tradetype == 'IMbyO'or tradetype == 'IMbyO_Q' else self.df1
 
         if codetypeanddigit2==None and codetypeanddigit3==None:
-            byproduct = pd.pivot_table(data, values=tradetype, index=[codetypeanddigit1],columns=['reporting_time'],\
+            if codetypeanddigit1=='SITC-2':codetypeanddigit1=['SITC-2','SITC-3']
+            elif codetypeanddigit1=='SITC-3':codetypeanddigit1=['SITC-3','SITC-5']
+
+            byproduct = pd.pivot_table(data, values=tradetype, index=codetypeanddigit1,columns=['reporting_time'],\
                                   aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
 
         elif codetypeanddigit3==None:
@@ -182,14 +186,18 @@ class Industry(object):
             tradelabel = "Total Exports"
         elif tradetype == 'IMbyO':
             tradelabel = "Imports"
+
         elif tradetype == 'IMbyO_Q':
             tradelabel = "Imports by Origin Quantity"
+        elif tradetype == 'TX_Q':
+            tradelabel = "Total Exports Quantity"
+        elif tradetype == 'RX_Q':
+            tradelabel = "Re-exports Quantity"
+        elif tradetype == 'DX_Q':
+            tradelabel = "Domestic Exports Quantity"
 
         table = tabledata/self.table1.loc[tradelabel]*100
 
-        print(tradelabel)
-        #change %share columns name
-        #print("testing")
         table.columns = [c+f"_% Share of overall {tradetype}" for c in table.columns]
         return table
 
@@ -205,7 +213,7 @@ class Industry(object):
         filename = f"{self.group_no}_{self.name}"
 
         writer4 = pd.ExcelWriter(f'Analysis_{filename}_{self.currency}__{self.money}.xlsx')
-        
+
         if alldata == True:
             writer1 = pd.ExcelWriter(f'df1_{filename}_{self.currency}__{self.money}.xlsx')
             writer2 = pd.ExcelWriter(f'df2_{filename}_{self.currency}__{self.money}.xlsx')
@@ -214,29 +222,35 @@ class Industry(object):
 
         if periodsdata == True:
                 for p in self.periods:
-                    print(p,"\n")
                     self.df1_allperiods[p].to_excel(writer1, p)
                     self.df2_allperiods[p].to_excel(writer2, p)
                     self.df3_allperiods[p].to_excel(writer3, p)
 
         self.table1_result.to_excel(writer4, 'table1', float_format=f"%.{numberofdecimal}f" )
+        # TX
         self.TXbycty.to_excel(writer4, 'TXbycty', float_format=f"%.{numberofdecimal}f" )
+        self.TXbycty_Q.to_excel(writer4, 'TXbycty_Q', float_format=f"%.{numberofdecimal}f" )
         self.TXbyEU.to_excel(writer4, 'TXbyEU', float_format=f"%.{numberofdecimal}f" )
         self.TXbyAsean.to_excel(writer4, 'TXbyAsean',float_format=f"%.{numberofdecimal}f" )
         self.TXbyAsia.to_excel(writer4, 'TXbyAsia',float_format=f"%.{numberofdecimal}f" )
-
+        # IM by origin
         self.IMbyctyasO.to_excel(writer4, 'IMbyctyasOrigin',float_format=f"%.{numberofdecimal}f" )
         self.IMbyctyasO_Q.to_excel(writer4, 'IMbyctyasOrigin_Q',float_format=f"%.{numberofdecimal}f" )
         self.IMbyEurope.to_excel(writer4, 'IMbyEuropeasOrigin',float_format=f"%.{numberofdecimal}f" )
 
+        # by product
         self.TXbyproduct.to_excel(writer4, 'TXbyproduct',float_format=f"%.{numberofdecimal}f" )
 
-        #DX
+        # DX
         self.DXbycty.to_excel(writer4, 'DXbycty', float_format=f"%.{numberofdecimal}f" )
+        self.DXbycty_Q.to_excel(writer4, 'DXbycty_Q', float_format=f"%.{numberofdecimal}f" )
         self.DXbyEU.to_excel(writer4, 'DXbyEU', float_format=f"%.{numberofdecimal}f" )
         self.DXbyAsean.to_excel(writer4, 'DXbyAsean',float_format=f"%.{numberofdecimal}f" )
         self.DXbyAsia.to_excel(writer4, 'DXbyAsia',float_format=f"%.{numberofdecimal}f" )
         self.DXbyproduct.to_excel(writer4, 'DXbyproduct',float_format=f"%.{numberofdecimal}f" )
+        # RX
+        self.RXbycty_Q.to_excel(writer4, 'RXbycty_Q', float_format=f"%.{numberofdecimal}f" )
+
         writer4.save()
 
         if alldata == True:
@@ -247,7 +261,7 @@ class Industry(object):
     def __str__(self):
         return "this class is %s, periods from %s-%s" % (self.name, self.periods[0], self.periods[-1])
 
-#export data for each industry
+# export data for each industry
 if __name__ == '__main__':
     # calculate time spent
     start_time = time.time()
@@ -270,7 +284,6 @@ if __name__ == '__main__':
 
     # sort the periods for functions use later
     periods = sorted(set(df1.reporting_time))
-    print(periods)
 
     cty_dict = get_geography_code()
 
@@ -301,7 +314,6 @@ if __name__ == '__main__':
         name = v['industry_name']
         codetype = v['code_type'][0]
         product_code = v['codes']
-        #print(group_no, name, code, product_code)
 
         table1,table2,table3 = df1,df2,df3
 
@@ -329,7 +341,6 @@ if __name__ == '__main__':
             table1_all_periods = table1[table1[commodity_digit1].isin(products1) | table1[commodity_digit2].isin(products2) | table1[commodity_digit3].isin(products3)]
             table2_all_periods = table2[table2[commodity_digit1].isin(products1) | table2[commodity_digit2].isin(products2) | table2[commodity_digit3].isin(products3)]
             table3_all_periods = table3[table3[commodity_digit1].isin(products1) | table3[commodity_digit2].isin(products2) | table3[commodity_digit3].isin(products3)]
-            #print(commodity_digit1,commodity_digit2,commodity_digit3)
             commodity_digit = [commodity_digit1,commodity_digit2,commodity_digit3]
             # sorted is prefered than sort
             commodity_digit = sorted(set(commodity_digit))
@@ -339,20 +350,17 @@ if __name__ == '__main__':
             table1_all_periods = table1[table1[commodity_digit].isin(product_code)]
             table2_all_periods = table2[table2[commodity_digit].isin(product_code)]
             table3_all_periods = table3[table3[commodity_digit].isin(product_code)]
-            commodity_digit=commodity_digit
+            #commodity_digit=commodity_digit
+        print(commodity_digit)
 
-
-        cols1 = ['DX','RX','TX','IM','TT','HS-2','HS-4','HS-6','HS-8','SITC-1','SITC-2','SITC-3','SITC-4','SITC-5','f1','f3_consignment','cty_name_destination','reporting_time']
+        cols1 = ['DX','RX','TX','IM','TT','DX_Q','RX_Q','TX_Q','IM_Q','HS-2','HS-4','HS-6','HS-8','SITC-1','SITC-2','SITC-3','SITC-4','SITC-5','f1','f3_consignment','cty_name_destination','reporting_time']
         cols2 = ['IMbyO', 'IMbyO_Q','HS-2','HS-4','HS-6','HS-8','SITC-1','SITC-2','SITC-3','SITC-4','SITC-5','f1','f3_origin','cty_name_origin','reporting_time']
         cols3 = ['RX_O','RX_Q','HS-2','HS-4','HS-6','HS-8','SITC-1','SITC-2','SITC-3','SITC-4','SITC-5','f1','f3_origin','f4_destination','cty_name_origin','cty_name_destination','reporting_time']
 
         # implement class
         dataset = [table1_all_periods[cols1],table2_all_periods[cols2],table3_all_periods[cols3]]
 
-        print(currency, money)
         industrycode[k]['class']=Industry(group_no,name,periods,dataset, currency, money)
-        print(industrycode[k]['class'])
-        print(commodity_digit)
 
         #print no. of industry instance
         print("Industry no.: %d " % Industry.noofindustry)
@@ -362,13 +370,16 @@ if __name__ == '__main__':
 
         #table 1 result
         industrycode[k]['class'].df_table1()
-        #print(industrycode[k]['class'].df_table1(),'\n')
 
         #table 2 DX, TX, IM by country
         industrycode[k]['class'].TXbycty=industrycode[k]['class'].analysis_bycty("TX")
         industrycode[k]['class'].DXbycty=industrycode[k]['class'].analysis_bycty("DX")
         industrycode[k]['class'].IMbyctyasO=industrycode[k]['class'].analysis_bycty("IMbyO")
+        # quantity
         industrycode[k]['class'].IMbyctyasO_Q=industrycode[k]['class'].analysis_bycty("IMbyO_Q")
+        industrycode[k]['class'].TXbycty_Q=industrycode[k]['class'].analysis_bycty("TX_Q")
+        industrycode[k]['class'].DXbycty_Q=industrycode[k]['class'].analysis_bycty("DX_Q")
+        industrycode[k]['class'].RXbycty_Q=industrycode[k]['class'].analysis_bycty("RX_Q")
         #table 3 by region
         #DX
         industrycode[k]['class'].DXbyEU=industrycode[k]['class'].analysis_byregions('DX','EU')
@@ -381,7 +392,7 @@ if __name__ == '__main__':
         #IMbyO
         industrycode[k]['class'].IMbyEurope=industrycode[k]['class'].analysis_byregions('IMbyO','Europe')
 
-        #table 3 TX by product
+        #table 4 TX by product
         if isinstance(commodity_digit,str):
             industrycode[k]['class'].TXbyproduct=industrycode[k]['class'].analysis_byproducts('TX',commodity_digit)
             industrycode[k]['class'].DXbyproduct=industrycode[k]['class'].analysis_byproducts('DX',commodity_digit)

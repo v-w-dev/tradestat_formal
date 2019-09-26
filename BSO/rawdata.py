@@ -31,7 +31,7 @@ def get_hsccit(year, month=12, path=rawdata_folder):
     with open(file_path, encoding='utf-8') as file_object:
         lines = file_object.readlines()
 
-    f1,f2,f3,f6,f10,f14 = ([] for _ in range(6))
+    f1,f2,f3,f6,f7,f10,f11,f14,f15 = ([] for _ in range(9))
 
     for i, line in enumerate(lines):
         row = line.strip()
@@ -42,24 +42,36 @@ def get_hsccit(year, month=12, path=rawdata_folder):
             f2.append(str(row[1+1:9+1]))
             f3.append(int(row[9+1:12+1].strip()))
             f6.append(int(row[48+1:66+1].strip()))
+            f7.append(int(row[66+1:84+1].strip()))
+
             f10.append(int(row[120+1:138+1].strip()))
+            f11.append(int(row[138+1:156+1].strip()))
             f14.append(int(row[192+1:210+1].strip()))
+            f15.append(int(row[210+1:228+1].strip()))
         if i > 0:
             f1.append(int(row[0].strip()))
             f2.append(str(row[1:9]))
             f3.append(int(row[9:12].strip()))
             f6.append(int(row[48:66].strip()))
+            f7.append(int(row[66:84].strip()))
+
             f10.append(int(row[120:138].strip()))
+            f11.append(int(row[138:156].strip()))
             f14.append(int(row[192:210].strip()))
+            f15.append(int(row[210:228].strip()))
 
     df = pd.DataFrame({'f1':f1})
     df['f2'] = f2
     df['f3'] = f3
     df['IM'] = f6
+    df['IM_Q'] = f7
     df['DX'] = f10
+    df['DX_Q'] = f11
     df['RX'] = f14
+    df['RX_Q'] = f15
     df['TX'] = df['DX'] + df['RX']
     df['TT'] = df['IM'] + df['TX']
+    df['TX_Q'] = df['DX_Q'] + df['RX_Q']
 
     # select transaction type 1 (HS-8digit) only
     HS8only = df.f1.isin([1])
