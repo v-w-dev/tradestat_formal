@@ -1,13 +1,8 @@
 import pandas as pd
 import numpy as np
 import time
-import xlsxwriter
-import calendar
-import sys, os
+import os
 from BSO.rawdata import mergedf
-from BSO.R1_figures import major_commodity_fig
-from BSO.R1_figures import trades_ranking_bycty, trades_ranking_bycty_multi_yrs
-from BSO.R1_figures import six_trades_ranking_bycty_multi_yrs, find_ranking
 from BSO.geography import get_geography_code, get_geography_regcnty_code
 from BSO.industry import get_industry_code
 
@@ -276,7 +271,7 @@ if __name__ == '__main__':
 
     print(f"********* {currency} {money}")
     # input periods for the report
-    startyear, endytd = 2016, 201907
+    startyear, endytd = 2016, 201908
     # acquire hsccit data from startyear to endyear and combine them into dataframe
     # acquire hscoit data from startyear to endyear and combine them into dataframe
     # acquire hscoccit data from startyear to endyear and combine them into dataframe
