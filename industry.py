@@ -193,7 +193,7 @@ class Industry(object):
         table.columns = [c+f"_% Share of overall {tradetype}" for c in table.columns]
         return table
 
-    def export_to_excel(self,numberofdecimal, periodsdata=False):
+    def export_to_excel(self,numberofdecimal, periodsdata=False, alldata=False):
         #saving to excel files
         original_path = os.getcwd()
         folder_path="Industry"
@@ -204,19 +204,21 @@ class Industry(object):
         # include data
         filename = f"{self.group_no}_{self.name}"
 
-        writer1 = pd.ExcelWriter(f'df1_{filename}_{self.currency}__{self.money}.xlsx')
-        writer2 = pd.ExcelWriter(f'df2_{filename}_{self.currency}__{self.money}.xlsx')
-        writer3 = pd.ExcelWriter(f'df3_{filename}_{self.currency}__{self.money}.xlsx')
         writer4 = pd.ExcelWriter(f'Analysis_{filename}_{self.currency}__{self.money}.xlsx')
-
-        allwriters = [writer1,writer2,writer3,writer4]
+        
+        if alldata == True:
+            writer1 = pd.ExcelWriter(f'df1_{filename}_{self.currency}__{self.money}.xlsx')
+            writer2 = pd.ExcelWriter(f'df2_{filename}_{self.currency}__{self.money}.xlsx')
+            writer3 = pd.ExcelWriter(f'df3_{filename}_{self.currency}__{self.money}.xlsx')
+            allwriters = [writer1,writer2,writer3,writer4]
 
         if periodsdata == True:
-            for p in self.periods:
-                print(p,"\n")
-                self.df1_allperiods[p].to_excel(writer1, p)
-                self.df2_allperiods[p].to_excel(writer2, p)
-                self.df3_allperiods[p].to_excel(writer3, p)
+                for p in self.periods:
+                    print(p,"\n")
+                    self.df1_allperiods[p].to_excel(writer1, p)
+                    self.df2_allperiods[p].to_excel(writer2, p)
+                    self.df3_allperiods[p].to_excel(writer3, p)
+
         self.table1_result.to_excel(writer4, 'table1', float_format=f"%.{numberofdecimal}f" )
         self.TXbycty.to_excel(writer4, 'TXbycty', float_format=f"%.{numberofdecimal}f" )
         self.TXbyEU.to_excel(writer4, 'TXbyEU', float_format=f"%.{numberofdecimal}f" )
@@ -235,8 +237,10 @@ class Industry(object):
         self.DXbyAsean.to_excel(writer4, 'DXbyAsean',float_format=f"%.{numberofdecimal}f" )
         self.DXbyAsia.to_excel(writer4, 'DXbyAsia',float_format=f"%.{numberofdecimal}f" )
         self.DXbyproduct.to_excel(writer4, 'DXbyproduct',float_format=f"%.{numberofdecimal}f" )
+        writer4.save()
 
-        [w.save() for w in allwriters]
+        if alldata == True:
+            [w.save() for w in allwriters]
 
         os.chdir(original_path)
 
@@ -389,7 +393,7 @@ if __name__ == '__main__':
         #saving to excel files
         outputexcel=True
         if outputexcel == True:
-            industrycode[k]['class'].export_to_excel(numberofdecimal=numberofdecimal, periodsdata=False)
+            industrycode[k]['class'].export_to_excel(numberofdecimal=numberofdecimal, periodsdata=False, alldata=False)
 
 #calculate time spent
 elapsed_time = round(time.time() - start_time, 2)
