@@ -58,7 +58,7 @@ class Industry(object):
     def analysis_table1(self,select_period):
         DX = self.df1_allperiods[select_period].DX.sum()
         RX = self.df1_allperiods[select_period].RX.sum()
-        RXbyCNasO = self.df3_allperiods[select_period][self.df3_allperiods[select_period].f3_origin==631].RX_O.sum()
+        RXbyCNasOrigin = self.df3_allperiods[select_period][self.df3_allperiods[select_period].f3_origin==631].RX_O.sum()
         TX = self.df1_allperiods[select_period].TX.sum()
         IM = self.df1_allperiods[select_period].IM.sum()
 
@@ -68,7 +68,7 @@ class Industry(object):
         IMbyO_Q =self.df2_allperiods[select_period].IMbyO_Q.sum()
 
 
-        return DX, RX, RXbyCNasO, TX, IM, TX_Q, DX_Q, RX_Q, IMbyO_Q
+        return DX, RX, RXbyCNasOrigin, TX, IM, TX_Q, DX_Q, RX_Q, IMbyO_Q
 
     def df_table1(self):
         self.table1_dict={}
@@ -124,6 +124,8 @@ class Industry(object):
         bycty.rename(index={'All':'All individual countries'}, inplace=True)
         bycty.index.name = "%s %s" % (self.currency, self.money)
 
+        # drop the useless overall column in pivot table
+        bycty = bycty.drop('All', 1)
         return bycty
 
     def analysis_byregions(self,tradetype, region):
@@ -147,11 +149,13 @@ class Industry(object):
         byregion.rename(index={'All':region}, inplace=True)
         byregion.index.name = "%s %s" % (self.currency, self.money)
 
+        # drop the useless overall column in pivot table
+        byregion = byregion.drop('All', 1)
         return byregion
 
     def analysis_byproducts(self, tradetype, codetypeanddigit1, codetypeanddigit2=None, codetypeanddigit3=None):
         self.codetypeanddigit=[codetypeanddigit1, codetypeanddigit2, codetypeanddigit3]
-        data = self.df2 if tradetype == 'IMbyO'or tradetype == 'IMbyO_Q' else self.df1
+        data = self.df2 if tradetype == 'IMbyO' or tradetype == 'IMbyO_Q' else self.df1
 
         if codetypeanddigit2==None and codetypeanddigit3==None:
             if codetypeanddigit1=='SITC-2':codetypeanddigit1=['SITC-2','SITC-3']
@@ -172,17 +176,21 @@ class Industry(object):
         byproduct = self.mix_conversion_with_pct(byproduct)
         byproduct = pd.concat([byproduct, byproduct_pctshare], axis=1).dropna(axis='columns', how='all')
 
+        # drop the useless overall column in pivot table
+        byproduct = byproduct.drop('All', 1)
         return byproduct
 
     def analysis_share_of_overall(self, tabledata, tradetype):
         if tradetype == 'DX':
             tradelabel = "Domestic Exports"
+        elif tradetype == 'RX':
+            tradelabel = "Re-exports"
         elif tradetype == 'TX':
             tradelabel = "Total Exports"
-        elif tradetype == 'IMbyO':
+        elif tradetype == 'IM' or tradetype == 'IMbyO':
             tradelabel = "Imports"
 
-        elif tradetype == 'IMbyO_Q':
+        elif tradetype == 'IM_Q' or tradetype == 'IMbyO_Q':
             tradelabel = "Imports by Origin Quantity"
         elif tradetype == 'TX_Q':
             tradelabel = "Total Exports Quantity"
@@ -222,29 +230,38 @@ class Industry(object):
                     self.df3_allperiods[p].to_excel(writer3, p)
 
         self.table1_result.to_excel(writer4, 'table1', float_format=f"%.{numberofdecimal}f" )
-        # TX
+        # bycty
+        self.DXbycty.to_excel(writer4, 'DXbycty', float_format=f"%.{numberofdecimal}f" )
         self.TXbycty.to_excel(writer4, 'TXbycty', float_format=f"%.{numberofdecimal}f" )
+        self.RXbycty.to_excel(writer4, 'RXbycty', float_format=f"%.{numberofdecimal}f" )
+        self.IMbyctyasConsignment.to_excel(writer4, 'IMbyctyasConsignment',float_format=f"%.{numberofdecimal}f" )
+        self.IMbyctyasOrigin.to_excel(writer4, 'IMbyctyasOrigin',float_format=f"%.{numberofdecimal}f" )
+
+        # by quantity
+        self.DXbycty_Q.to_excel(writer4, 'DXbycty_Q', float_format=f"%.{numberofdecimal}f" )
         self.TXbycty_Q.to_excel(writer4, 'TXbycty_Q', float_format=f"%.{numberofdecimal}f" )
+        self.RXbycty_Q.to_excel(writer4, 'RXbycty_Q', float_format=f"%.{numberofdecimal}f" )
+        self.IMbyctyasConsignment_Q.to_excel(writer4, 'IMbyctyasConsignment_Q',float_format=f"%.{numberofdecimal}f" )
+        self.IMbyctyasOrigin_Q.to_excel(writer4, 'IMbyctyasOrigin_Q',float_format=f"%.{numberofdecimal}f" )
+
+        # by region
+        # EU
+        self.DXbyEU.to_excel(writer4, 'DXbyEU', float_format=f"%.{numberofdecimal}f" )
         self.TXbyEU.to_excel(writer4, 'TXbyEU', float_format=f"%.{numberofdecimal}f" )
+        # Asean
+        self.DXbyAsean.to_excel(writer4, 'DXbyAsean',float_format=f"%.{numberofdecimal}f" )
         self.TXbyAsean.to_excel(writer4, 'TXbyAsean',float_format=f"%.{numberofdecimal}f" )
+        # Asia
+        self.DXbyAsia.to_excel(writer4, 'DXbyAsia',float_format=f"%.{numberofdecimal}f" )
         self.TXbyAsia.to_excel(writer4, 'TXbyAsia',float_format=f"%.{numberofdecimal}f" )
-        # IM by origin
-        self.IMbyctyasO.to_excel(writer4, 'IMbyctyasOrigin',float_format=f"%.{numberofdecimal}f" )
-        self.IMbyctyasO_Q.to_excel(writer4, 'IMbyctyasOrigin_Q',float_format=f"%.{numberofdecimal}f" )
-        self.IMbyEurope.to_excel(writer4, 'IMbyEuropeasOrigin',float_format=f"%.{numberofdecimal}f" )
+        # Europe
+        self.IMbyEuropeasOrigin.to_excel(writer4, 'IMbyEuropeasOrigin',float_format=f"%.{numberofdecimal}f" )
 
         # by product
-        self.TXbyproduct.to_excel(writer4, 'TXbyproduct',float_format=f"%.{numberofdecimal}f" )
-
-        # DX
-        self.DXbycty.to_excel(writer4, 'DXbycty', float_format=f"%.{numberofdecimal}f" )
-        self.DXbycty_Q.to_excel(writer4, 'DXbycty_Q', float_format=f"%.{numberofdecimal}f" )
-        self.DXbyEU.to_excel(writer4, 'DXbyEU', float_format=f"%.{numberofdecimal}f" )
-        self.DXbyAsean.to_excel(writer4, 'DXbyAsean',float_format=f"%.{numberofdecimal}f" )
-        self.DXbyAsia.to_excel(writer4, 'DXbyAsia',float_format=f"%.{numberofdecimal}f" )
         self.DXbyproduct.to_excel(writer4, 'DXbyproduct',float_format=f"%.{numberofdecimal}f" )
-        # RX
-        self.RXbycty_Q.to_excel(writer4, 'RXbycty_Q', float_format=f"%.{numberofdecimal}f" )
+        self.TXbyproduct.to_excel(writer4, 'TXbyproduct',float_format=f"%.{numberofdecimal}f" )
+        self.IMbyproduct_consignment.to_excel(writer4, 'IMbyproduct_consignment',float_format=f"%.{numberofdecimal}f" )
+        self.IMbyproduct_origin.to_excel(writer4, 'IMbyproduct_origin',float_format=f"%.{numberofdecimal}f" )
 
         writer4.save()
 
@@ -366,34 +383,46 @@ if __name__ == '__main__':
         #table 1 result
         industrycode[k]['class'].df_table1()
 
-        #table 2 DX, TX, IM by country
-        industrycode[k]['class'].TXbycty=industrycode[k]['class'].analysis_bycty("TX")
+        #table 2 DX, TX, RX, IM by country
         industrycode[k]['class'].DXbycty=industrycode[k]['class'].analysis_bycty("DX")
-        industrycode[k]['class'].IMbyctyasO=industrycode[k]['class'].analysis_bycty("IMbyO")
+        industrycode[k]['class'].TXbycty=industrycode[k]['class'].analysis_bycty("TX")
+        industrycode[k]['class'].RXbycty=industrycode[k]['class'].analysis_bycty("RX")
+        industrycode[k]['class'].IMbyctyasConsignment=industrycode[k]['class'].analysis_bycty("IM")
+        industrycode[k]['class'].IMbyctyasOrigin=industrycode[k]['class'].analysis_bycty("IMbyO")
+
         # quantity
-        industrycode[k]['class'].IMbyctyasO_Q=industrycode[k]['class'].analysis_bycty("IMbyO_Q")
-        industrycode[k]['class'].TXbycty_Q=industrycode[k]['class'].analysis_bycty("TX_Q")
         industrycode[k]['class'].DXbycty_Q=industrycode[k]['class'].analysis_bycty("DX_Q")
+        industrycode[k]['class'].TXbycty_Q=industrycode[k]['class'].analysis_bycty("TX_Q")
         industrycode[k]['class'].RXbycty_Q=industrycode[k]['class'].analysis_bycty("RX_Q")
+        industrycode[k]['class'].IMbyctyasConsignment_Q=industrycode[k]['class'].analysis_bycty("IM_Q")
+        industrycode[k]['class'].IMbyctyasOrigin_Q=industrycode[k]['class'].analysis_bycty("IMbyO_Q")
+
         #table 3 by region
-        #DX
+        # EU
         industrycode[k]['class'].DXbyEU=industrycode[k]['class'].analysis_byregions('DX','EU')
-        industrycode[k]['class'].DXbyAsean=industrycode[k]['class'].analysis_byregions('DX','Asean')
-        industrycode[k]['class'].DXbyAsia=industrycode[k]['class'].analysis_byregions('DX','Asia')
-        #TX
         industrycode[k]['class'].TXbyEU=industrycode[k]['class'].analysis_byregions('TX','EU')
+        # Asean
+        industrycode[k]['class'].DXbyAsean=industrycode[k]['class'].analysis_byregions('DX','Asean')
         industrycode[k]['class'].TXbyAsean=industrycode[k]['class'].analysis_byregions('TX','Asean')
+        # Asia
+        industrycode[k]['class'].DXbyAsia=industrycode[k]['class'].analysis_byregions('DX','Asia')
         industrycode[k]['class'].TXbyAsia=industrycode[k]['class'].analysis_byregions('TX','Asia')
-        #IMbyO
-        industrycode[k]['class'].IMbyEurope=industrycode[k]['class'].analysis_byregions('IMbyO','Europe')
+        # Europe
+        industrycode[k]['class'].IMbyEuropeasOrigin=industrycode[k]['class'].analysis_byregions('IMbyO','Europe')
 
         #table 4 TX by product
         if isinstance(commodity_digit,str):
-            industrycode[k]['class'].TXbyproduct=industrycode[k]['class'].analysis_byproducts('TX',commodity_digit)
             industrycode[k]['class'].DXbyproduct=industrycode[k]['class'].analysis_byproducts('DX',commodity_digit)
+            industrycode[k]['class'].TXbyproduct=industrycode[k]['class'].analysis_byproducts('TX',commodity_digit)
+            industrycode[k]['class'].RXbyproduct=industrycode[k]['class'].analysis_byproducts('RX',commodity_digit)
+            industrycode[k]['class'].IMbyproduct_consignment=industrycode[k]['class'].analysis_byproducts('IM',commodity_digit)
+            industrycode[k]['class'].IMbyproduct_origin=industrycode[k]['class'].analysis_byproducts('IMbyO',commodity_digit)
+
         if isinstance(commodity_digit,list):
-            industrycode[k]['class'].TXbyproduct=industrycode[k]['class'].analysis_byproducts('TX',*commodity_digit)
             industrycode[k]['class'].DXbyproduct=industrycode[k]['class'].analysis_byproducts('DX',*commodity_digit)
+            industrycode[k]['class'].TXbyproduct=industrycode[k]['class'].analysis_byproducts('TX',*commodity_digit)
+            industrycode[k]['class'].IMbyproduct_consignment=industrycode[k]['class'].analysis_byproducts('IM',commodity_digit)
+            industrycode[k]['class'].IMbyproduct_origin=industrycode[k]['class'].analysis_byproducts('IMbyO',commodity_digit)
 
         #set decimal space
         #saving to excel files
