@@ -139,10 +139,17 @@ class Industry(object):
         sorting_index = 'cty_name_origin' if tradetype == 'IMbyO'or tradetype == 'IMbyO_Q' else 'cty_name_destination'
 
         _df = data[data[sorting_index].isin(region_cty_name)]
-
-        byregion = pd.pivot_table(_df, values=tradetype, index=[sorting_index],columns=['reporting_time'],\
+################################
+        #### not perfect, need adjust
+        try:
+            byregion = pd.pivot_table(_df, values=tradetype, index=[sorting_index],columns=['reporting_time'],\
                       aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
+        except:
+            print("need adjust")
+            byregion = pd.pivot_table(_df, values=tradetype, index=[sorting_index],columns=['reporting_time'],\
+                      aggfunc=np.sum, margins=True).sort_values(by=periods[-2],ascending=False)
 
+        ####
         byregion_pctshare = self.analysis_share_of_overall(byregion,tradetype)
         byregion = self.mix_conversion_with_pct(byregion)
         byregion = pd.concat([byregion, byregion_pctshare], axis=1).dropna(axis='columns', how='all')
@@ -215,12 +222,12 @@ class Industry(object):
         # include data
         filename = f"{self.group_no}_{self.name}"
 
-        writer4 = pd.ExcelWriter(f'Analysis_{filename}_{self.currency}__{self.money}.xlsx')
+        writer4 = pd.ExcelWriter(f'Analysis_{filename}_{self.currency}_{self.money}_{self.periods[0]}-{self.periods[-1]}.xlsx')
 
         if alldata == True:
-            writer1 = pd.ExcelWriter(f'df1_{filename}_{self.currency}__{self.money}.xlsx')
-            writer2 = pd.ExcelWriter(f'df2_{filename}_{self.currency}__{self.money}.xlsx')
-            writer3 = pd.ExcelWriter(f'df3_{filename}_{self.currency}__{self.money}.xlsx')
+            writer1 = pd.ExcelWriter(f'df1_{filename}_{self.currency}_{self.money}_{self.periods[0]}-{self.periods[-1]}.xlsx')
+            writer2 = pd.ExcelWriter(f'df2_{filename}_{self.currency}_{self.money}_{self.periods[0]}-{self.periods[-1]}.xlsx')
+            writer3 = pd.ExcelWriter(f'df3_{filename}_{self.currency}_{self.money}_{self.periods[0]}-{self.periods[-1]}.xlsx')
             allwriters = [writer1,writer2,writer3,writer4]
 
         if periodsdata == True:
@@ -288,7 +295,7 @@ if __name__ == '__main__':
 
     print(f"********* {currency} {money}")
     # input periods for the report
-    startyear, endytd = 2016, 201908
+    startyear, endytd = 2016, 201903
     # acquire hsccit data from startyear to endyear and combine them into dataframe
     # acquire hscoit data from startyear to endyear and combine them into dataframe
     # acquire hscoccit data from startyear to endyear and combine them into dataframe
@@ -321,114 +328,119 @@ if __name__ == '__main__':
         writer.save()
 
     industrycode = get_industry_code()
+    # for loop to implement class for each industry
     for k, v in industrycode.items():
-        group_no = k
-        name = v['industry_name']
-        codetype = v['code_type'][0]
-        product_code = v['codes']
 
-        table1,table2,table3 = df1,df2,df3
+        try:
+            group_no = k
+            name = v['industry_name']
+            codetype = v['code_type'][0]
+            product_code = v['codes']
 
-        # length of the product codes
-        len_pcode = list(set([len(c) for c in product_code]))
+            table1,table2,table3 = df1,df2,df3
 
-        if len(len_pcode)>=2:
-            commodity_digit1 = codetype +'-'+ str(len_pcode[0])
-            commodity_digit2 = codetype +'-'+ str(len_pcode[1])
-            commodity_digit3 = codetype +'-'+ str(len_pcode[-1])
-            if len(len_pcode)>=3:
-                commodity_digit3 = codetype +'-'+ str(len_pcode[2])
+            # length of the product codes
+            len_pcode = list(set([len(c) for c in product_code]))
 
-            products1,products2,products3=[],[],[]
-            for code in product_code:
+            if len(len_pcode)>=2:
+                commodity_digit1 = codetype +'-'+ str(len_pcode[0])
+                commodity_digit2 = codetype +'-'+ str(len_pcode[1])
+                commodity_digit3 = codetype +'-'+ str(len_pcode[-1])
+                if len(len_pcode)>=3:
+                    commodity_digit3 = codetype +'-'+ str(len_pcode[2])
 
-                if len(code) == int(len_pcode[0]):
-                    products1.append(code)
-                elif len(code) == int(len_pcode[1]):
-                    products2.append(code)
-                elif len(code) == int(len_pcode[2]):
-                    products3.append(code)
+                products1,products2,products3=[],[],[]
+                for code in product_code:
 
-            #include the industry product for all different lengths of codes
-            table1_all_periods = table1[table1[commodity_digit1].isin(products1) | table1[commodity_digit2].isin(products2) | table1[commodity_digit3].isin(products3)]
-            table2_all_periods = table2[table2[commodity_digit1].isin(products1) | table2[commodity_digit2].isin(products2) | table2[commodity_digit3].isin(products3)]
-            table3_all_periods = table3[table3[commodity_digit1].isin(products1) | table3[commodity_digit2].isin(products2) | table3[commodity_digit3].isin(products3)]
-            commodity_digit = [commodity_digit1,commodity_digit2,commodity_digit3]
-            # sorted is prefered than sort
-            commodity_digit = sorted(set(commodity_digit))
+                    if len(code) == int(len_pcode[0]):
+                        products1.append(code)
+                    elif len(code) == int(len_pcode[1]):
+                        products2.append(code)
+                    elif len(code) == int(len_pcode[2]):
+                        products3.append(code)
 
-        else:
-            commodity_digit = codetype +'-'+ str(len_pcode[0])
-            table1_all_periods = table1[table1[commodity_digit].isin(product_code)]
-            table2_all_periods = table2[table2[commodity_digit].isin(product_code)]
-            table3_all_periods = table3[table3[commodity_digit].isin(product_code)]
-            #commodity_digit=commodity_digit
-        print(commodity_digit)
+                #include the industry product for all different lengths of codes
+                table1_all_periods = table1[table1[commodity_digit1].isin(products1) | table1[commodity_digit2].isin(products2) | table1[commodity_digit3].isin(products3)]
+                table2_all_periods = table2[table2[commodity_digit1].isin(products1) | table2[commodity_digit2].isin(products2) | table2[commodity_digit3].isin(products3)]
+                table3_all_periods = table3[table3[commodity_digit1].isin(products1) | table3[commodity_digit2].isin(products2) | table3[commodity_digit3].isin(products3)]
+                commodity_digit = [commodity_digit1,commodity_digit2,commodity_digit3]
+                # sorted is prefered than sort
+                commodity_digit = sorted(set(commodity_digit))
 
-        cols1 = ['DX','RX','TX','IM','TT','DX_Q','RX_Q','TX_Q','IM_Q','HS-2','HS-4','HS-6','HS-8','SITC-1','SITC-2','SITC-3','SITC-4','SITC-5','f1','f3_consignment','cty_name_destination','reporting_time']
-        cols2 = ['IMbyO', 'IMbyO_Q','HS-2','HS-4','HS-6','HS-8','SITC-1','SITC-2','SITC-3','SITC-4','SITC-5','f1','f3_origin','cty_name_origin','reporting_time']
-        cols3 = ['RX_O','RX_Q','HS-2','HS-4','HS-6','HS-8','SITC-1','SITC-2','SITC-3','SITC-4','SITC-5','f1','f3_origin','f4_destination','cty_name_origin','cty_name_destination','reporting_time']
+            else:
+                commodity_digit = codetype +'-'+ str(len_pcode[0])
+                table1_all_periods = table1[table1[commodity_digit].isin(product_code)]
+                table2_all_periods = table2[table2[commodity_digit].isin(product_code)]
+                table3_all_periods = table3[table3[commodity_digit].isin(product_code)]
+                #commodity_digit=commodity_digit
+            print(commodity_digit)
 
-        # implement class
-        dataset = [table1_all_periods[cols1],table2_all_periods[cols2],table3_all_periods[cols3]]
+            cols1 = ['DX','RX','TX','IM','TT','DX_Q','RX_Q','TX_Q','IM_Q','HS-2','HS-4','HS-6','HS-8','SITC-1','SITC-2','SITC-3','SITC-4','SITC-5','f1','f3_consignment','cty_name_destination','reporting_time']
+            cols2 = ['IMbyO', 'IMbyO_Q','HS-2','HS-4','HS-6','HS-8','SITC-1','SITC-2','SITC-3','SITC-4','SITC-5','f1','f3_origin','cty_name_origin','reporting_time']
+            cols3 = ['RX_O','RX_Q','HS-2','HS-4','HS-6','HS-8','SITC-1','SITC-2','SITC-3','SITC-4','SITC-5','f1','f3_origin','f4_destination','cty_name_origin','cty_name_destination','reporting_time']
 
-        industrycode[k]['class']=Industry(group_no,name,periods,dataset, currency, money)
+            # implement class
+            dataset = [table1_all_periods[cols1],table2_all_periods[cols2],table3_all_periods[cols3]]
 
-        #print no. of industry instance
-        print("Industry no.: %d " % Industry.noofindustry)
+            industrycode[k]['class']=Industry(group_no,name,periods,dataset, currency, money)
 
-        industrycode[k]['class'].run_df_table()
-        df1_all_periods_table = industrycode[k]['class'].run_df_separate()
+            #print no. of industry instance
+            print("Industry no.: %d " % Industry.noofindustry)
 
-        #table 1 result
-        industrycode[k]['class'].df_table1()
+            industrycode[k]['class'].run_df_table()
+            df1_all_periods_table = industrycode[k]['class'].run_df_separate()
 
-        #table 2 DX, TX, RX, IM by country
-        industrycode[k]['class'].DXbycty=industrycode[k]['class'].analysis_bycty("DX")
-        industrycode[k]['class'].TXbycty=industrycode[k]['class'].analysis_bycty("TX")
-        industrycode[k]['class'].RXbycty=industrycode[k]['class'].analysis_bycty("RX")
-        industrycode[k]['class'].IMbyctyasConsignment=industrycode[k]['class'].analysis_bycty("IM")
-        industrycode[k]['class'].IMbyctyasOrigin=industrycode[k]['class'].analysis_bycty("IMbyO")
+            #table 1 result
+            industrycode[k]['class'].df_table1()
 
-        # quantity
-        industrycode[k]['class'].DXbycty_Q=industrycode[k]['class'].analysis_bycty("DX_Q")
-        industrycode[k]['class'].TXbycty_Q=industrycode[k]['class'].analysis_bycty("TX_Q")
-        industrycode[k]['class'].RXbycty_Q=industrycode[k]['class'].analysis_bycty("RX_Q")
-        industrycode[k]['class'].IMbyctyasConsignment_Q=industrycode[k]['class'].analysis_bycty("IM_Q")
-        industrycode[k]['class'].IMbyctyasOrigin_Q=industrycode[k]['class'].analysis_bycty("IMbyO_Q")
+            #table 2 DX, TX, RX, IM by country
+            industrycode[k]['class'].DXbycty=industrycode[k]['class'].analysis_bycty("DX")
+            industrycode[k]['class'].TXbycty=industrycode[k]['class'].analysis_bycty("TX")
+            industrycode[k]['class'].RXbycty=industrycode[k]['class'].analysis_bycty("RX")
+            industrycode[k]['class'].IMbyctyasConsignment=industrycode[k]['class'].analysis_bycty("IM")
+            industrycode[k]['class'].IMbyctyasOrigin=industrycode[k]['class'].analysis_bycty("IMbyO")
 
-        #table 3 by region
-        # EU
-        industrycode[k]['class'].DXbyEU=industrycode[k]['class'].analysis_byregions('DX','EU')
-        industrycode[k]['class'].TXbyEU=industrycode[k]['class'].analysis_byregions('TX','EU')
-        # Asean
-        industrycode[k]['class'].DXbyAsean=industrycode[k]['class'].analysis_byregions('DX','Asean')
-        industrycode[k]['class'].TXbyAsean=industrycode[k]['class'].analysis_byregions('TX','Asean')
-        # Asia
-        industrycode[k]['class'].DXbyAsia=industrycode[k]['class'].analysis_byregions('DX','Asia')
-        industrycode[k]['class'].TXbyAsia=industrycode[k]['class'].analysis_byregions('TX','Asia')
-        # Europe
-        industrycode[k]['class'].IMbyEuropeasOrigin=industrycode[k]['class'].analysis_byregions('IMbyO','Europe')
+            # quantity
+            industrycode[k]['class'].DXbycty_Q=industrycode[k]['class'].analysis_bycty("DX_Q")
+            industrycode[k]['class'].TXbycty_Q=industrycode[k]['class'].analysis_bycty("TX_Q")
+            industrycode[k]['class'].RXbycty_Q=industrycode[k]['class'].analysis_bycty("RX_Q")
+            industrycode[k]['class'].IMbyctyasConsignment_Q=industrycode[k]['class'].analysis_bycty("IM_Q")
+            industrycode[k]['class'].IMbyctyasOrigin_Q=industrycode[k]['class'].analysis_bycty("IMbyO_Q")
 
-        #table 4 TX by product
-        if isinstance(commodity_digit,str):
-            industrycode[k]['class'].DXbyproduct=industrycode[k]['class'].analysis_byproducts('DX',commodity_digit)
-            industrycode[k]['class'].TXbyproduct=industrycode[k]['class'].analysis_byproducts('TX',commodity_digit)
-            industrycode[k]['class'].RXbyproduct=industrycode[k]['class'].analysis_byproducts('RX',commodity_digit)
-            industrycode[k]['class'].IMbyproduct_consignment=industrycode[k]['class'].analysis_byproducts('IM',commodity_digit)
-            industrycode[k]['class'].IMbyproduct_origin=industrycode[k]['class'].analysis_byproducts('IMbyO',commodity_digit)
+            #table 3 by region
+            # EU
+            industrycode[k]['class'].DXbyEU=industrycode[k]['class'].analysis_byregions('DX','EU')
+            industrycode[k]['class'].TXbyEU=industrycode[k]['class'].analysis_byregions('TX','EU')
+            # Asean
+            industrycode[k]['class'].DXbyAsean=industrycode[k]['class'].analysis_byregions('DX','Asean')
+            industrycode[k]['class'].TXbyAsean=industrycode[k]['class'].analysis_byregions('TX','Asean')
+            # Asia
+            industrycode[k]['class'].DXbyAsia=industrycode[k]['class'].analysis_byregions('DX','Asia')
+            industrycode[k]['class'].TXbyAsia=industrycode[k]['class'].analysis_byregions('TX','Asia')
+            # Europe
+            industrycode[k]['class'].IMbyEuropeasOrigin=industrycode[k]['class'].analysis_byregions('IMbyO','Europe')
 
-        if isinstance(commodity_digit,list):
-            industrycode[k]['class'].DXbyproduct=industrycode[k]['class'].analysis_byproducts('DX',*commodity_digit)
-            industrycode[k]['class'].TXbyproduct=industrycode[k]['class'].analysis_byproducts('TX',*commodity_digit)
-            industrycode[k]['class'].IMbyproduct_consignment=industrycode[k]['class'].analysis_byproducts('IM',commodity_digit)
-            industrycode[k]['class'].IMbyproduct_origin=industrycode[k]['class'].analysis_byproducts('IMbyO',commodity_digit)
+            #table 4 TX by product
+            if isinstance(commodity_digit,str):
+                industrycode[k]['class'].DXbyproduct=industrycode[k]['class'].analysis_byproducts('DX',commodity_digit)
+                industrycode[k]['class'].TXbyproduct=industrycode[k]['class'].analysis_byproducts('TX',commodity_digit)
+                industrycode[k]['class'].RXbyproduct=industrycode[k]['class'].analysis_byproducts('RX',commodity_digit)
+                industrycode[k]['class'].IMbyproduct_consignment=industrycode[k]['class'].analysis_byproducts('IM',commodity_digit)
+                industrycode[k]['class'].IMbyproduct_origin=industrycode[k]['class'].analysis_byproducts('IMbyO',commodity_digit)
 
-        #set decimal space
-        #saving to excel files
-        outputexcel=True
-        if outputexcel == True:
-            industrycode[k]['class'].export_to_excel(numberofdecimal=numberofdecimal, periodsdata=False, alldata=False)
+            if isinstance(commodity_digit,list):
+                industrycode[k]['class'].DXbyproduct=industrycode[k]['class'].analysis_byproducts('DX',*commodity_digit)
+                industrycode[k]['class'].TXbyproduct=industrycode[k]['class'].analysis_byproducts('TX',*commodity_digit)
+                industrycode[k]['class'].IMbyproduct_consignment=industrycode[k]['class'].analysis_byproducts('IM',commodity_digit)
+                industrycode[k]['class'].IMbyproduct_origin=industrycode[k]['class'].analysis_byproducts('IMbyO',commodity_digit)
+
+            #set decimal space
+            #saving to excel files
+            outputexcel=True
+            if outputexcel == True:
+                industrycode[k]['class'].export_to_excel(numberofdecimal=numberofdecimal, periodsdata=False, alldata=False)
+        except:
+            print(f'unsucessful for: {group_no} {name}')
 
 #calculate time spent
 elapsed_time = round(time.time() - start_time, 2)
