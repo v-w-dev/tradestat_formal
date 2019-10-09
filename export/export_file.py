@@ -234,3 +234,25 @@ def autofit(excel_name, currency, money):
     ws.Columns.AutoFit()
     wb.Save()
     wb.Close()
+
+def autofit_industry(excel_name):
+    """using win32com.client to control excel to autofit"""
+    #print("here test")
+    #print(excel_name)
+    excel = Dispatch('Excel.Application')
+    thisdir = os.getcwd()
+    #print("dir: ", thisdir)
+    wb = excel.Workbooks.Open(thisdir+"/"+excel_name)
+    #print('wb: ',wb)
+    ws = wb.Worksheets
+    ws_len = len(wb.Worksheets)
+    #print(ws_len)
+
+    for s in range(ws_len):
+        #print(s)
+        # wrap
+        ws[s].Rows[0].WrapText = True
+        # auto fit
+        ws[s].Columns.AutoFit()
+    wb.Save()
+    wb.Close()
