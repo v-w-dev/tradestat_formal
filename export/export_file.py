@@ -1,7 +1,7 @@
 import calendar
 import os
 import numpy as np
-import openpyxl
+import openpyxl as op
 from win32com.client import Dispatch
 
 def create_and_change_path(endperiod,folder_path=None, currency=None, money=None):
@@ -235,7 +235,7 @@ def autofit(excel_name, currency, money):
     wb.Save()
     wb.Close()
 
-def autofit_industry(excel_name):
+def autofit_wrap_industry(excel_name):
     """using win32com.client to control excel to autofit"""
     #print("here test")
     #print(excel_name)
@@ -254,5 +254,12 @@ def autofit_industry(excel_name):
         ws[s].Rows[0].WrapText = True
         # auto fit
         ws[s].Columns.AutoFit()
+
     wb.Save()
     wb.Close()
+
+def freeze_pane(excel_name):
+    wb = op.load_workbook(excel_name)
+    for ws in wb:
+        ws.freeze_panes = ws['B2']
+    wb.save(excel_name)

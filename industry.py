@@ -277,8 +277,8 @@ class Industry(object):
         # autofit the columns in the excel file
         try:
             #print('file test: ', os.getcwd())
-            ex.autofit_industry(self.excelfile_name)
-
+            ex.autofit_wrap_industry(self.excelfile_name)
+            ex.freeze_pane(self.excelfile_name)
 
             if alldata == True:
                 [w.save() for w in allwriters]
@@ -296,7 +296,7 @@ if __name__ == '__main__':
 
     dollar = {'HKD':1, 'USD':7.8}
     unit = {'TH':1000, 'MN':1000000}
-    currency = 'HKD'
+    currency = 'USD'
     money = 'MN'
 
     # set number of decimals
@@ -304,7 +304,7 @@ if __name__ == '__main__':
 
     print(f"********* {currency} {money}")
     # input periods for the report
-    startyear, endytd = 2016, 201906
+    startyear, endytd = 2016, 201908
     # acquire hsccit data from startyear to endyear and combine them into dataframe
     # acquire hscoit data from startyear to endyear and combine them into dataframe
     # acquire hscoccit data from startyear to endyear and combine them into dataframe
