@@ -295,9 +295,9 @@ if __name__ == '__main__':
     start_time = time.time()
 
     dollar = {'HKD':1, 'USD':7.8}
-    unit = {'TH':1000, 'MN':1000000}
-    currency = 'USD'
-    money = 'MN'
+    unit = {'TH':10**3, 'MN':10**6,'BN':10**9}
+    currency = 'HKD'
+    money = 'BN'
 
     # set number of decimals
     numberofdecimal=3
