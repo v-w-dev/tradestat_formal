@@ -296,7 +296,7 @@ if __name__ == '__main__':
 
     dollar = {'HKD':1, 'USD':7.8}
     unit = {'THOUSAND':10**3, 'MILLION':10**6,'BILLION':10**9}
-    currency = 'USD'
+    currency = 'HKD'
     money = 'MILLION'
 
     # set number of decimals
@@ -304,7 +304,7 @@ if __name__ == '__main__':
 
     print(f"********* {currency} {money}")
     # input periods for the report
-    startyear, endytd = 2016, 201908
+    startyear, endytd = 2016, 201907
     # acquire hsccit data from startyear to endyear and combine them into dataframe
     # acquire hscoit data from startyear to endyear and combine them into dataframe
     # acquire hscoccit data from startyear to endyear and combine them into dataframe
@@ -337,6 +337,9 @@ if __name__ == '__main__':
         writer.save()
 
     industrycode = get_industry_code()
+
+    # add overall
+
     # for loop to implement class for each industry
     for k, v in industrycode.items():
 
