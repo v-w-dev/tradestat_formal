@@ -80,7 +80,7 @@ class Industry(object):
 
         self.table1=pd.DataFrame(self.table1_dict)
         table1_idx = ["Domestic Exports", "Re-exports", "   of Chinese mainland Origin", "Total Exports", "Imports", \
-                    "Total Exports Quantity", "Domestic Exports Quantity", "Re-exports Quantity", "Imports by Origin Quantity"]
+                    "Total Exports Quantity", "Domestic Exports Quantity", "Re-exports Quantity", "Imports Quantity"]
         self.table1.set_index([table1_idx], inplace=True)
         self.table1_result = self.mix_conversion_with_pct(self.table1)
         self.table1_result.index.name = "%s %s %s" % (self.currency, self.money, "(year to date)")
@@ -167,8 +167,8 @@ class Industry(object):
         data = self.df2 if tradetype == 'IMbyO' or tradetype == 'IMbyO_Q' else self.df1
 
         if codetypeanddigit2==None and codetypeanddigit3==None:
-            if codetypeanddigit1=='SITC-2':codetypeanddigit1=['SITC-2','SITC-3']
-            elif codetypeanddigit1=='SITC-3':codetypeanddigit1=['SITC-3','SITC-5']
+            #if codetypeanddigit1=='SITC-2':codetypeanddigit1=['SITC-2','SITC-3']
+            #elif codetypeanddigit1=='SITC-3':codetypeanddigit1=['SITC-3','SITC-5']
 
             byproduct = pd.pivot_table(data, values=tradetype, index=codetypeanddigit1,columns=['reporting_time'],\
                                   aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
@@ -200,7 +200,7 @@ class Industry(object):
             tradelabel = "Imports"
 
         elif tradetype == 'IM_Q' or tradetype == 'IMbyO_Q':
-            tradelabel = "Imports by Origin Quantity"
+            tradelabel = "Imports Quantity"
         elif tradetype == 'TX_Q':
             tradelabel = "Total Exports Quantity"
         elif tradetype == 'RX_Q':
@@ -213,11 +213,11 @@ class Industry(object):
         table.columns = [c+f"_% Share of overall {tradetype}" for c in table.columns]
         return table
 
-    def export_to_excel(self,numberofdecimal, periodsdata=False, alldata=False):
+    def export_to_excel(self, numberofdecimal, periodsdata=False, alldata=False):
         #saving to excel files
         original_path = os.getcwd()
-        folder_path="Industry"
-        file_path=folder_path+"/"+self.periods[0]+"-"+self.periods[-1]+"/"+self.currency+"/"+self.money
+        folder_path = "Industry"
+        file_path = folder_path+"/"+self.periods[0]+"-"+self.periods[-1]+"/"+self.currency+"/"+self.money
         if not os.path.exists(file_path):
             os.makedirs(file_path)
         os.chdir(file_path)
@@ -270,6 +270,7 @@ class Industry(object):
         # by product
         self.DXbyproduct.to_excel(writer4, 'DXbyproduct',float_format=f"%.{numberofdecimal}f" )
         self.TXbyproduct.to_excel(writer4, 'TXbyproduct',float_format=f"%.{numberofdecimal}f" )
+        self.RXbyproduct.to_excel(writer4, 'RXbyproduct',float_format=f"%.{numberofdecimal}f" )
         self.IMbyproduct.to_excel(writer4, 'IMbyproduct',float_format=f"%.{numberofdecimal}f" )
 
         writer4.save()
@@ -304,7 +305,7 @@ if __name__ == '__main__':
 
     print(f"********* {currency} {money}")
     # input periods for the report
-    startyear, endytd = 2016, 201907
+    startyear, endytd = 2016, 201908
     # acquire hsccit data from startyear to endyear and combine them into dataframe
     # acquire hscoit data from startyear to endyear and combine them into dataframe
     # acquire hscoccit data from startyear to endyear and combine them into dataframe
@@ -337,15 +338,19 @@ if __name__ == '__main__':
         writer.save()
 
     industrycode = get_industry_code()
-
+    #print("here")
+    #print(industrycode)
     # add overall
+    industrycode.update({'All':{'industry_name':'All', 'code_type':'All','codes':'All'}})
 
     # for loop to implement class for each industry
     for k, v in industrycode.items():
+        #if k!='All':continue
+        print("key: ",k)
 
         group_no = k
         name = v['industry_name']
-        codetype = v['code_type'][0]
+        codetype =  'All' if k == 'All' else v['code_type'][0]
         product_code = v['codes']
 
         table1,table2,table3 = df1,df2,df3
@@ -378,12 +383,19 @@ if __name__ == '__main__':
             # sorted is prefered than sort
             commodity_digit = sorted(set(commodity_digit))
 
-        else:
-            commodity_digit = codetype +'-'+ str(len_pcode[0])
-            table1_all_periods = table1[table1[commodity_digit].isin(product_code)]
-            table2_all_periods = table2[table2[commodity_digit].isin(product_code)]
-            table3_all_periods = table3[table3[commodity_digit].isin(product_code)]
-            #commodity_digit=commodity_digit
+        elif len(len_pcode)<2:
+            if k == 'All':
+                commodity_digit = 'SITC-3'
+                table1_all_periods = table1
+                table2_all_periods = table2
+                table3_all_periods = table3
+
+            else:
+                commodity_digit = codetype +'-'+ str(len_pcode[0])
+                table1_all_periods = table1[table1[commodity_digit].isin(product_code)]
+                table2_all_periods = table2[table2[commodity_digit].isin(product_code)]
+                table3_all_periods = table3[table3[commodity_digit].isin(product_code)]
+                #commodity_digit=commodity_digit
         print(commodity_digit)
 
         cols1 = ['DX','RX','TX','IM','TT','DX_Q','RX_Q','TX_Q','IM_Q','HS-2','HS-4','HS-6','HS-8','SITC-1','SITC-2','SITC-3','SITC-4','SITC-5','f1','f3_consignment','cty_name_destination','reporting_time']
@@ -441,6 +453,7 @@ if __name__ == '__main__':
         if isinstance(commodity_digit,list):
             industrycode[k]['class'].DXbyproduct=industrycode[k]['class'].analysis_byproducts('DX',*commodity_digit)
             industrycode[k]['class'].TXbyproduct=industrycode[k]['class'].analysis_byproducts('TX',*commodity_digit)
+            industrycode[k]['class'].RXbyproduct=industrycode[k]['class'].analysis_byproducts('RX',*commodity_digit)
             industrycode[k]['class'].IMbyproduct=industrycode[k]['class'].analysis_byproducts('IM',*commodity_digit)
 
         #set decimal space
