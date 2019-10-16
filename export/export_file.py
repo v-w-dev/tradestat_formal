@@ -258,8 +258,29 @@ def autofit_wrap_industry(excel_name):
     wb.Save()
     wb.Close()
 
-def freeze_pane(excel_name):
+def freezepane(excel_name):
     wb = op.load_workbook(excel_name)
+
     for ws in wb:
+        # freeze_pane
         ws.freeze_panes = ws['B2']
+
+    wb.save(excel_name)
+
+def addcomma(excel_name):
+    wb = op.load_workbook(excel_name)
+
+    for ws in wb:
+        # add comma format
+        for cell in ws['B:B']:
+            cell.number_format = '#,###0.000'
+        for cell in ws['C:C']:
+            cell.number_format = '#,###0.000'
+        for cell in ws['E:E']:
+            cell.number_format = '#,###0.000'
+        for cell in ws['F:F']:
+            cell.number_format = '#,###0.000'
+        for cell in ws['H:H']:
+            cell.number_format = '#,###0.000'
+
     wb.save(excel_name)

@@ -69,7 +69,6 @@ class Industry(object):
         RX_Q = self.df1_allperiods[select_period].RX_Q.sum()
         IMbyO_Q =self.df2_allperiods[select_period].IMbyO_Q.sum()
 
-
         return DX, RX, RXbyCNasOrigin, TX, IM, TX_Q, DX_Q, RX_Q, IMbyO_Q
 
     def df_table1(self):
@@ -79,6 +78,7 @@ class Industry(object):
             #print(self.table1_dict[p])
 
         self.table1=pd.DataFrame(self.table1_dict)
+
         table1_idx = ["Domestic Exports", "Re-exports", "   of Chinese mainland Origin", "Total Exports", "Imports", \
                     "Total Exports Quantity", "Domestic Exports Quantity", "Re-exports Quantity", "Imports Quantity"]
         self.table1.set_index([table1_idx], inplace=True)
@@ -278,8 +278,9 @@ class Industry(object):
         # autofit the columns in the excel file
         try:
             #print('file test: ', os.getcwd())
+            ex.addcomma(self.excelfile_name)
             ex.autofit_wrap_industry(self.excelfile_name)
-            ex.freeze_pane(self.excelfile_name)
+            ex.freezepane(self.excelfile_name)
 
             if alldata == True:
                 [w.save() for w in allwriters]
