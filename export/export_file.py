@@ -251,7 +251,7 @@ def autofit_wrap_industry(excel_name):
     for s in range(ws_len):
         #print(s)
         # wrap
-        ws[s].Rows[0].WrapText = True
+        ws[s].Rows[1].WrapText = True
         # auto fit
         ws[s].Columns.AutoFit()
 
@@ -263,24 +263,95 @@ def freezepane(excel_name):
 
     for ws in wb:
         # freeze_pane
-        ws.freeze_panes = ws['B2']
+        ws.freeze_panes = ws['B3']
 
     wb.save(excel_name)
 
-def addcomma(excel_name):
+def addcomma_align(excel_name):
     wb = op.load_workbook(excel_name)
 
     for ws in wb:
         # add comma format
         for cell in ws['B:B']:
-            cell.number_format = '#,###0.000'
+            cell.number_format = '#,###0.0'
         for cell in ws['C:C']:
-            cell.number_format = '#,###0.000'
+            cell.number_format = '#,###0.0'
         for cell in ws['E:E']:
-            cell.number_format = '#,###0.000'
+            cell.number_format = '#,###0.0'
         for cell in ws['F:F']:
-            cell.number_format = '#,###0.000'
+            cell.number_format = '#,###0.0'
         for cell in ws['H:H']:
-            cell.number_format = '#,###0.000'
+            cell.number_format = '#,###0.0'
+
+        # last row
+        endrow = len(ws['A:A'])
+
+        # align to right
+        for row in range(3, endrow+1):
+            for col in range(2,15):
+                _cell = ws.cell(row,col)
+                _cell.alignment = op.styles.Alignment(horizontal='right')
+
+    wb.save(excel_name)
+
+def addtitle(excel_name, industryname):
+    # find the hyphen position and delete it
+    positionhyphen = industryname[:8].find('-')
+    if positionhyphen!=-1: industryname=industryname[positionhyphen+2:]
+
+    wb = op.load_workbook(excel_name)
+    # font format
+    ft1 = op.styles.Font(name='Calibri', size=12.5, bold=True)
+    #_cell.font = ft1
+    #_cell.alignment = openpyxl.styles.Alignment(horizontal='left')
+    # titles
+    titles = [f'Performance of Hong Kong’s Trade: {industryname}', #1
+              f"Hong Kong's Domestic Exports of {industryname} by Country", #2
+              f"Hong Kong's Total Exports of {industryname} by Country", #3
+              f"Hong Kong's Re-exports of {industryname} by Country", #4
+              f"Hong Kong's Imports of {industryname} by Country as Consignment", #5
+              f"Hong Kong's Imports of {industryname} by Country as Origin", #6
+
+              f"Hong Kong's Domestic Exports of {industryname} by Country by Quantity", #7
+              f"Hong Kong's Total Exports of {industryname} by Country by Quantity", #8
+              f"Hong Kong's Re-exports of {industryname} by Country by Quantity", #9
+              f"Hong Kong's Imports of {industryname} by Country as Consignment by Quantity", #10
+              f"Hong Kong's Imports of {industryname} by Country as Origin by Quantity", #11
+
+              f"Hong Kong's Domestic Exports of {industryname} by E.U.(28)", #12
+              f"Hong Kong's Total Exports of {industryname} by E.U.(28)", #13
+
+              f"Hong Kong's Domestic Exports of {industryname} by Asean", #14
+              f"Hong Kong's Total Exports of {industryname} by Asean", #15
+
+              f"Hong Kong's Domestic Exports of {industryname} by Asia", #16
+              f"Hong Kong's Total Exports of {industryname} by Asia", #17
+
+              f"Hong Kong's Imports of {industryname} by Europe by Country as Origin", #18
+
+              f"Hong Kong's Domestic Exports of {industryname} by products", #19
+              f"Hong Kong's Total Exports of {industryname} by products", #20
+              f"Hong Kong's Re-exports of {industryname} by products", #21
+              f"Hong Kong's Imports of {industryname} by products", #22
+            ]
+
+    for i, (ws, t) in enumerate(zip(wb, titles)):
+        # first sheet has fewer columns
+        if i == 0: ws.merge_cells('A1:I1')
+        else: ws.merge_cells('A1:N1')
+
+        ws.cell(row=1, column=1).value = t
+        ws.cell(row=1, column=1).alignment = op.styles.Alignment(horizontal='center')
+        ws.cell(row=1, column=1).font = ft1
+    wb.save(excel_name)
+
+def addsource(excel_name):
+    wb = op.load_workbook(excel_name)
+    for ws in wb:
+        endrow = len(ws['A:A'])
+        #print(endrow)
+        ws.cell(row=endrow+2, column=1).value = '* INSIGNIFICANT            ∞ INFINITY'
+        ws.cell(row=endrow+3, column=1).value = '..OVER 1000% INCREASE      - NIL     N.E.S. NOT ELSEWHERE SPECIFIED'
+        ws.cell(row=endrow+4, column=1).value = 'SOURCE: HONG KONG TRADE STATISTICS, CENSUS & STATISTICS DEPT.'
 
     wb.save(excel_name)

@@ -34,7 +34,7 @@ Europe_cty_name=[get_geography_code(sheet="country")[i] for i in Europe_cty_code
 class Industry(object):
     """Class for Industry to export excel data"""
     noofindustry=0
-    def __init__(self, group_no, name, periods, data, currency, money):
+    def __init__(self, group_no, name, periods, data, currency, money, needsymbol):
         Industry.noofindustry+=1
         self.group_no=group_no
         self.name = name
@@ -42,6 +42,11 @@ class Industry(object):
         self.data = data
         self.currency = currency
         self.money = money
+        self.needsymbol = needsymbol
+        if len(periods)==4:
+            self.sorting=[periods[-1],periods[-2],periods[-3],periods[-4]]
+        if len(periods)==5:
+            self.sorting=[periods[-1],periods[-2],periods[-4],periods[-5]]
 
     def money_conversion(self, tabledata):
         return tabledata/dollar[self.currency]/unit[self.money]
@@ -96,7 +101,6 @@ class Industry(object):
         elif int(self.periods[-1][-2:])==12:
             tablepcc=tablefig.pct_change(axis='columns')
         #change pecentage columns name
-        #print("testing")
         tablepcc.columns = [c+"_% CHG" for c in tablepcc.columns]
 
         # 1) make percentage times 100
@@ -106,22 +110,29 @@ class Industry(object):
         # 3) money_converion
         tablefig = self.money_conversion(tablefig)
 
+        # denote symbol
+        if self.needsymbol == True:
+            tablefig = ex.denotesymbol(tablefig, datatype='fig')
+            # drop NA for change
+            tablepcc = tablepcc.dropna(axis='columns', how='all')
+            tablepcc = ex.denotesymbol(tablepcc, datatype='chg')
+
         table_result = pd.concat([tablefig, tablepcc], axis=1).dropna(axis='columns', how='all')
         return table_result.sort_index(axis=1)
 
     def analysis_bycty(self,tradetype):
         data = self.df2 if tradetype == 'IMbyO'or tradetype == 'IMbyO_Q' else self.df1
         sorting_index = 'cty_name_origin' if tradetype == 'IMbyO'or tradetype == 'IMbyO_Q' else 'cty_name_destination'
-        #print(data)
-        #print(sorting_index)
         bycty = pd.pivot_table(data, values=tradetype, index=sorting_index,columns=['reporting_time'],\
-                      aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
-        #print(bycty)
+                      aggfunc=np.sum, margins=True).sort_values(by=self.sorting,ascending=False)
 
         bycty_pctshare = self.analysis_share_of_overall(bycty,tradetype)
         bycty = self.mix_conversion_with_pct(bycty)
 
-        #concatenate the fig, $ change and % share
+        # denote symbol
+
+
+        # combine the fig, $ change and % share
         bycty = pd.concat([bycty, bycty_pctshare], axis=1).dropna(axis='columns', how='all')
         bycty.rename(index={'All':'All individual countries'}, inplace=True)
         bycty.index.name = "%s %s %s" % (self.currency, self.money, "(year to date)")
@@ -145,11 +156,11 @@ class Industry(object):
         #### not perfect, need adjust
         try:
             byregion = pd.pivot_table(_df, values=tradetype, index=[sorting_index],columns=['reporting_time'],\
-                      aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
+                      aggfunc=np.sum, margins=True).sort_values(by=self.sorting,ascending=False)
         except:
             print("need adjust")
             byregion = pd.pivot_table(_df, values=tradetype, index=[sorting_index],columns=['reporting_time'],\
-                      aggfunc=np.sum, margins=True).sort_values(by=periods[-2],ascending=False)
+                      aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
 
         ####
         byregion_pctshare = self.analysis_share_of_overall(byregion,tradetype)
@@ -171,15 +182,15 @@ class Industry(object):
             #elif codetypeanddigit1=='SITC-3':codetypeanddigit1=['SITC-3','SITC-5']
 
             byproduct = pd.pivot_table(data, values=tradetype, index=codetypeanddigit1,columns=['reporting_time'],\
-                                  aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
+                                  aggfunc=np.sum, margins=True).sort_values(by=self.sorting,ascending=False)
 
         elif codetypeanddigit3==None:
             byproduct = pd.pivot_table(data, values=tradetype, index=[codetypeanddigit1,codetypeanddigit2],columns=['reporting_time'],\
-                                  aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
+                                  aggfunc=np.sum, margins=True).sort_values(by=self.sorting,ascending=False)
 
         else:
             byproduct = pd.pivot_table(data, values=tradetype, index=[codetypeanddigit1,codetypeanddigit2,codetypeanddigit3],columns=['reporting_time'],\
-                                  aggfunc=np.sum, margins=True).sort_values(by=periods[-1],ascending=False)
+                                  aggfunc=np.sum, margins=True).sort_values(by=self.sorting,ascending=False)
 
         byproduct_pctshare = self.analysis_share_of_overall(byproduct,tradetype)
         byproduct = self.mix_conversion_with_pct(byproduct)
@@ -211,6 +222,13 @@ class Industry(object):
         table = tabledata/self.table1.loc[tradelabel]*100
 
         table.columns = [c+f"_% Share of overall {tradetype}" for c in table.columns]
+
+        # denote symbol
+        if self.needsymbol == True:
+            # drop NA for share
+            table = table.dropna(axis='columns', how='all')
+            table = ex.denotesymbol(table, datatype='share')
+
         return table
 
     def export_to_excel(self, numberofdecimal, periodsdata=False, alldata=False):
@@ -239,48 +257,50 @@ class Industry(object):
                     self.df2_allperiods[p].to_excel(writer2, p)
                     self.df3_allperiods[p].to_excel(writer3, p)
 
-        self.table1_result.to_excel(writer4, 'table1', float_format=f"%.{numberofdecimal}f" )
+        self.table1_result.to_excel(writer4, 'table1', float_format=f"%.{numberofdecimal}f", startrow=1)
         # bycty
-        self.DXbycty.to_excel(writer4, 'DXbycty', float_format=f"%.{numberofdecimal}f" )
-        self.TXbycty.to_excel(writer4, 'TXbycty', float_format=f"%.{numberofdecimal}f" )
-        self.RXbycty.to_excel(writer4, 'RXbycty', float_format=f"%.{numberofdecimal}f" )
-        self.IMbyctyasConsignment.to_excel(writer4, 'IMbyctyasConsignment',float_format=f"%.{numberofdecimal}f" )
-        self.IMbyctyasOrigin.to_excel(writer4, 'IMbyctyasOrigin',float_format=f"%.{numberofdecimal}f" )
+        self.DXbycty.to_excel(writer4, 'DXbycty', float_format=f"%.{numberofdecimal}f", startrow=1)
+        self.TXbycty.to_excel(writer4, 'TXbycty', float_format=f"%.{numberofdecimal}f", startrow=1)
+        self.RXbycty.to_excel(writer4, 'RXbycty', float_format=f"%.{numberofdecimal}f", startrow=1)
+        self.IMbyctyasConsignment.to_excel(writer4, 'IMbyctyasConsignment',float_format=f"%.{numberofdecimal}f", startrow=1)
+        self.IMbyctyasOrigin.to_excel(writer4, 'IMbyctyasOrigin',float_format=f"%.{numberofdecimal}f", startrow=1)
 
         # by quantity
-        self.DXbycty_Q.to_excel(writer4, 'DXbycty_Q', float_format=f"%.{numberofdecimal}f" )
-        self.TXbycty_Q.to_excel(writer4, 'TXbycty_Q', float_format=f"%.{numberofdecimal}f" )
-        self.RXbycty_Q.to_excel(writer4, 'RXbycty_Q', float_format=f"%.{numberofdecimal}f" )
-        self.IMbyctyasConsignment_Q.to_excel(writer4, 'IMbyctyasConsignment_Q',float_format=f"%.{numberofdecimal}f" )
-        self.IMbyctyasOrigin_Q.to_excel(writer4, 'IMbyctyasOrigin_Q',float_format=f"%.{numberofdecimal}f" )
+        self.DXbycty_Q.to_excel(writer4, 'DXbycty_Q', float_format=f"%.{numberofdecimal}f", startrow=1)
+        self.TXbycty_Q.to_excel(writer4, 'TXbycty_Q', float_format=f"%.{numberofdecimal}f", startrow=1)
+        self.RXbycty_Q.to_excel(writer4, 'RXbycty_Q', float_format=f"%.{numberofdecimal}f", startrow=1)
+        self.IMbyctyasConsignment_Q.to_excel(writer4, 'IMbyctyasConsignment_Q',float_format=f"%.{numberofdecimal}f", startrow=1)
+        self.IMbyctyasOrigin_Q.to_excel(writer4, 'IMbyctyasOrigin_Q',float_format=f"%.{numberofdecimal}f", startrow=1)
 
         # by region
         # EU
-        self.DXbyEU.to_excel(writer4, 'DXbyEU', float_format=f"%.{numberofdecimal}f" )
-        self.TXbyEU.to_excel(writer4, 'TXbyEU', float_format=f"%.{numberofdecimal}f" )
+        self.DXbyEU.to_excel(writer4, 'DXbyEU', float_format=f"%.{numberofdecimal}f", startrow=1)
+        self.TXbyEU.to_excel(writer4, 'TXbyEU', float_format=f"%.{numberofdecimal}f", startrow=1)
         # Asean
-        self.DXbyAsean.to_excel(writer4, 'DXbyAsean',float_format=f"%.{numberofdecimal}f" )
-        self.TXbyAsean.to_excel(writer4, 'TXbyAsean',float_format=f"%.{numberofdecimal}f" )
+        self.DXbyAsean.to_excel(writer4, 'DXbyAsean',float_format=f"%.{numberofdecimal}f", startrow=1)
+        self.TXbyAsean.to_excel(writer4, 'TXbyAsean',float_format=f"%.{numberofdecimal}f", startrow=1)
         # Asia
-        self.DXbyAsia.to_excel(writer4, 'DXbyAsia',float_format=f"%.{numberofdecimal}f" )
-        self.TXbyAsia.to_excel(writer4, 'TXbyAsia',float_format=f"%.{numberofdecimal}f" )
+        self.DXbyAsia.to_excel(writer4, 'DXbyAsia',float_format=f"%.{numberofdecimal}f", startrow=1)
+        self.TXbyAsia.to_excel(writer4, 'TXbyAsia',float_format=f"%.{numberofdecimal}f", startrow=1)
         # Europe
-        self.IMbyEuropeasOrigin.to_excel(writer4, 'IMbyEuropeasOrigin',float_format=f"%.{numberofdecimal}f" )
+        self.IMbyEuropeasOrigin.to_excel(writer4, 'IMbyEuropeasOrigin',float_format=f"%.{numberofdecimal}f", startrow=1)
 
         # by product
-        self.DXbyproduct.to_excel(writer4, 'DXbyproduct',float_format=f"%.{numberofdecimal}f" )
-        self.TXbyproduct.to_excel(writer4, 'TXbyproduct',float_format=f"%.{numberofdecimal}f" )
-        self.RXbyproduct.to_excel(writer4, 'RXbyproduct',float_format=f"%.{numberofdecimal}f" )
-        self.IMbyproduct.to_excel(writer4, 'IMbyproduct',float_format=f"%.{numberofdecimal}f" )
+        self.DXbyproduct.to_excel(writer4, 'DXbyproduct',float_format=f"%.{numberofdecimal}f", startrow=1)
+        self.TXbyproduct.to_excel(writer4, 'TXbyproduct',float_format=f"%.{numberofdecimal}f", startrow=1)
+        self.RXbyproduct.to_excel(writer4, 'RXbyproduct',float_format=f"%.{numberofdecimal}f", startrow=1)
+        self.IMbyproduct.to_excel(writer4, 'IMbyproduct',float_format=f"%.{numberofdecimal}f", startrow=1)
 
         writer4.save()
 
         # autofit the columns in the excel file
         try:
             #print('file test: ', os.getcwd())
-            ex.addcomma(self.excelfile_name)
+            ex.addtitle(self.excelfile_name, self.name)
+            ex.addcomma_align(self.excelfile_name)
             ex.autofit_wrap_industry(self.excelfile_name)
             ex.freezepane(self.excelfile_name)
+            ex.addsource(self.excelfile_name)
 
             if alldata == True:
                 [w.save() for w in allwriters]
@@ -307,6 +327,10 @@ if __name__ == '__main__':
     print(f"********* {currency} {money}")
     # input periods for the report
     startyear, endytd = 2016, 201908
+
+    # decide to denote symbol or not
+    needsymbol = True
+
     # acquire hsccit data from startyear to endyear and combine them into dataframe
     # acquire hscoit data from startyear to endyear and combine them into dataframe
     # acquire hscoccit data from startyear to endyear and combine them into dataframe
@@ -342,7 +366,7 @@ if __name__ == '__main__':
     #print("here")
     #print(industrycode)
     # add overall
-    industrycode.update({'All':{'industry_name':'All', 'code_type':'All','codes':'All'}})
+    industrycode.update({'Overall':{'industry_name':'Overall', 'code_type':'Overall','codes':'Overall'}})
 
     # for loop to implement class for each industry
     for k, v in industrycode.items():
@@ -351,7 +375,7 @@ if __name__ == '__main__':
 
         group_no = k
         name = v['industry_name']
-        codetype =  'All' if k == 'All' else v['code_type'][0]
+        codetype =  'Overall' if k == 'Overall' else v['code_type'][0]
         product_code = v['codes']
 
         table1,table2,table3 = df1,df2,df3
@@ -385,7 +409,7 @@ if __name__ == '__main__':
             commodity_digit = sorted(set(commodity_digit))
 
         elif len(len_pcode)<2:
-            if k == 'All':
+            if k == 'Overall':
                 commodity_digit = 'SITC-3'
                 table1_all_periods = table1
                 table2_all_periods = table2
@@ -406,7 +430,7 @@ if __name__ == '__main__':
         # implement class
         dataset = [table1_all_periods[cols1],table2_all_periods[cols2],table3_all_periods[cols3]]
 
-        industrycode[k]['class']=Industry(group_no,name,periods,dataset, currency, money)
+        industrycode[k]['class']=Industry(group_no,name,periods,dataset, currency, money, needsymbol)
 
         #print no. of industry instance
         print("Industry no.: %d " % Industry.noofindustry)
