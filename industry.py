@@ -377,8 +377,8 @@ if __name__ == '__main__':
 
     dollar = {'HKD':1, 'USD':7.8}
     unit = {'THOUSAND':10**3, 'MILLION':10**6,'BILLION':10**9}
-    currency = 'HKD'
-    money = 'THOUSAND'
+    currency = 'USD'
+    money = 'MILLION'
 
     # set number of decimals
     numberofdecimal=3
@@ -388,8 +388,7 @@ if __name__ == '__main__':
     startyear, endytd = 2016, 201908
 
     # decide to denote symbol or not
-    needsymbol = False
-
+    needsymbol = True
     # acquire hsccit data from startyear to endyear and combine them into dataframe
     # acquire hscoit data from startyear to endyear and combine them into dataframe
     # acquire hscoccit data from startyear to endyear and combine them into dataframe
