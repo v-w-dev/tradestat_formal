@@ -186,7 +186,7 @@ class Industry(object):
         #print(sorted_period)
 
         try:
-            print(_df)
+            #print(_df)
             byregion = pd.pivot_table(_df, values=tradetype, index=[sorting_index],columns=['reporting_time'],\
                       aggfunc=np.sum, margins=True).sort_values(by=sorted_period,ascending=False)
         except:
@@ -377,7 +377,7 @@ if __name__ == '__main__':
 
     dollar = {'HKD':1, 'USD':7.8}
     unit = {'THOUSAND':10**3, 'MILLION':10**6,'BILLION':10**9}
-    currency = 'USD'
+    currency = 'HKD'
     money = 'MILLION'
 
     # set number of decimals
