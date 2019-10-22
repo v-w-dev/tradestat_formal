@@ -72,6 +72,7 @@ def get_hsccit(year, month=12, path=rawdata_folder):
     df['TX'] = df['DX'] + df['RX']
     df['TT'] = df['IM'] + df['TX']
     df['TX_Q'] = df['DX_Q'] + df['RX_Q']
+    df['TT_Q'] = df['TX_Q'] + df['IM_Q']
 
     # select transaction type 1 (HS-8digit) only
     HS8only = df.f1.isin([1])
@@ -190,8 +191,8 @@ def get_hscoccit(year, month=12, path=rawdata_folder):
     df['f2']=f2
     df['f3']=f3
     df['f4']=f4
-    df['RX_O']=f7
-    df['RX_Q']=f8
+    df['RXbyO']=f7
+    df['RXbyO_Q']=f8
 
     # select for transaction type 1 (HS-8digit) only
     HS8only = df.f1.isin([1])

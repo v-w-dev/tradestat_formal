@@ -261,10 +261,12 @@ def autofit_wrap_industry(excel_name):
 def freezepane(excel_name):
     wb = op.load_workbook(excel_name)
 
+    i=0
     for ws in wb:
         # freeze_pane
-        ws.freeze_panes = ws['B3']
-
+        if i == 0: ws.freeze_panes = ws['B3']
+        else: ws.freeze_panes = ws['B4']
+        i+=1
     wb.save(excel_name)
 
 def addcomma_align(excel_name):
@@ -308,27 +310,45 @@ def addtitle(excel_name, industryname):
     titles = [f'Performance of Hong Kong’s Trade: {industryname}', #1
               f"Hong Kong's Domestic Exports of {industryname} by Country", #2
               f"Hong Kong's Total Exports of {industryname} by Country", #3
-              f"Hong Kong's Re-exports of {industryname} by Country", #4
+              f"Hong Kong's Re-exports of {industryname} by Country as Destination", #4
+              f"Hong Kong's Re-exports of {industryname} by Country as Origin", #4
               f"Hong Kong's Imports of {industryname} by Country as Consignment", #5
               f"Hong Kong's Imports of {industryname} by Country as Origin", #6
+              f"Hong Kong's Total Trades of {industryname} by Country", #3
 
               f"Hong Kong's Domestic Exports of {industryname} by Country by Quantity", #7
               f"Hong Kong's Total Exports of {industryname} by Country by Quantity", #8
-              f"Hong Kong's Re-exports of {industryname} by Country by Quantity", #9
+              f"Hong Kong's Re-exports of {industryname} by Country as Destination by Quantity", #9
+              f"Hong Kong's Re-exports of {industryname} by Country as Origin by Quantity", #9
               f"Hong Kong's Imports of {industryname} by Country as Consignment by Quantity", #10
               f"Hong Kong's Imports of {industryname} by Country as Origin by Quantity", #11
-
+              f"Hong Kong's Total Trades of {industryname} by Country by Quantity", #8
+              # EU
               f"Hong Kong's Domestic Exports of {industryname} by E.U.(28)", #12
               f"Hong Kong's Total Exports of {industryname} by E.U.(28)", #13
+              f"Hong Kong's Re-exports of {industryname} by E.U.(28) as Destination", #4
+              f"Hong Kong's Re-exports of {industryname} by E.U.(28) as Origin", #4
+              f"Hong Kong's Imports of {industryname} by E.U.(28) as Consignment", #5
+              f"Hong Kong's Imports of {industryname} by E.U.(28) as Origin", #6
+              f"Hong Kong's Total Trades of {industryname} by E.U.(28)", #3
 
+              # Asean
               f"Hong Kong's Domestic Exports of {industryname} by Asean", #14
               f"Hong Kong's Total Exports of {industryname} by Asean", #15
+              f"Hong Kong's Re-exports of {industryname} by Asean as Destination", #4
+              f"Hong Kong's Re-exports of {industryname} by Asean as Origin", #4
+              f"Hong Kong's Imports of {industryname} by Asean as Consignment", #5
+              f"Hong Kong's Imports of {industryname} by Asean as Origin", #6
+              f"Hong Kong's Total Trades of {industryname} by Asean", #3
 
+              # Asia
               f"Hong Kong's Domestic Exports of {industryname} by Asia", #16
               f"Hong Kong's Total Exports of {industryname} by Asia", #17
 
+              # Europe
               f"Hong Kong's Imports of {industryname} by Europe by Country as Origin", #18
 
+              # product
               f"Hong Kong's Domestic Exports of {industryname} by products", #19
               f"Hong Kong's Total Exports of {industryname} by products", #20
               f"Hong Kong's Re-exports of {industryname} by products", #21
