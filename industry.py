@@ -385,7 +385,7 @@ if __name__ == '__main__':
 
     print(f"********* {currency} {money}")
     # input periods for the report
-    startyear, endytd = 2016, 201908
+    startyear, endytd = 2016, 201909
 
     # decide to denote symbol or not
     needsymbol = False

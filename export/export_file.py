@@ -163,17 +163,17 @@ def adjust_excelformat_xlsxwriter(writer, currency, money, periods, name, noofpr
     worksheet.merge_range(20+4*(noofprod+3),6,20+4*(noofprod+3),10, "HONG KONG TRADE DEVELOPMENT COUNCIL", fmt_left)
 
 def adjust_excelformat_openpyxl(excel_name, currency, money):
-    wb = openpyxl.load_workbook(excel_name)
+    wb = op.load_workbook(excel_name)
     ws = wb[f"{currency}_{money}"]
 
     # use openpyxl
-    ft1 = openpyxl.styles.Font(name='Arial', size=7.5)
+    ft1 = op.styles.Font(name='Arial', size=7.5)
     value_format = '#,##0'
     pct_format = '#,##0.0'
 
     # no border format
-    side = openpyxl.styles.Side(border_style=None)
-    no_border = openpyxl.styles.borders.Border(
+    side = op.styles.Side(border_style=None)
+    no_border = op.styles.borders.Border(
         left=side,
         right=side,
         top=side,
@@ -199,7 +199,7 @@ def adjust_excelformat_openpyxl(excel_name, currency, money):
         _cell = ws.cell(row,1)
         _cell.border = no_border
         _cell.font = ft1
-        _cell.alignment = openpyxl.styles.Alignment(horizontal='left')
+        _cell.alignment = op.styles.Alignment(horizontal='left')
         _cell.number_format = '@'
 
     # set C:I value format, up to row no.1000
@@ -305,7 +305,7 @@ def addtitle(excel_name, industryname):
     # font format
     ft1 = op.styles.Font(name='Calibri', size=12.5, bold=True)
     #_cell.font = ft1
-    #_cell.alignment = openpyxl.styles.Alignment(horizontal='left')
+    #_cell.alignment = op.styles.Alignment(horizontal='left')
     # titles
     titles = [f'Performance of Hong Kong’s Trade: {industryname}', #1
               f"Hong Kong's Domestic Exports of {industryname} by Country", #2
