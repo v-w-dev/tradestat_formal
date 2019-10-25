@@ -101,6 +101,9 @@ class Industry(object):
 
         periods = sorted(periods, reverse=True)
 
+        print('tttt')
+        print(tablefig)
+
         if int(periods[0][-2:])!=12:
             year=tablefig.iloc[:,[0,1,3]].pct_change(axis='columns')
             ytd=tablefig.iloc[:,[2,4]].pct_change(axis='columns')
@@ -439,6 +442,7 @@ if __name__ == '__main__':
     # for loop to implement class for each industry
     for k, v in industrycode.items():
         #if k!='Overall':continue
+        if k != '46': continue
         print("key: ",k)
 
         group_no = k
