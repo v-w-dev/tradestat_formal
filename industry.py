@@ -43,9 +43,10 @@ class Industry(object):
         self.currency = currency
         self.money = money
         self.needsymbol = needsymbol
-        if len(periods)==4:
+        print( type(periods),' ', periods, ' ',periods[-1][-2:])
+        if len(periods)==4 and periods[-1][-2:]=='12':
             self.sorting=[periods[-1],periods[-2],periods[-3],periods[-4]]
-        if len(periods)==5:
+        if len(periods)==5 and periods[-1][-2:]!='12':
             self.sorting=[periods[-1],periods[-2],periods[-4],periods[-5]]
 
     def money_conversion(self, tabledata):
@@ -106,6 +107,7 @@ class Industry(object):
             tablepcc=pd.concat([year,ytd],axis=1)
 
         elif int(periods[0][-2:])==12:
+            #tablefig=tablefig.drop('All', 1)
             tablepcc=tablefig.pct_change(axis='columns')
         #change pecentage columns name
         tablepcc.columns = [c+"_% CHG" for c in tablepcc.columns]
@@ -146,6 +148,9 @@ class Industry(object):
 
         bycty = pd.pivot_table(data, values=tradetype, index=sorting_index,columns=['reporting_time'],\
                       aggfunc=np.sum, margins=True).sort_values(by=sorted_period,ascending=False)
+        #print(bycty)
+        # drop the useless overall column in pivot table
+        bycty = bycty.drop('All', 1)
 
         bycty_pctshare = self.analysis_share_of_overall(bycty,tradetype)
         bycty = self.mix_conversion_with_pct(bycty,self.periods)
@@ -156,7 +161,7 @@ class Industry(object):
         bycty.index.name = "%s %s %s" % (self.currency, self.money, "(year to date)")
 
         # drop the useless overall column in pivot table
-        bycty = bycty.drop('All', 1)
+        #bycty = bycty.drop('All', 1)
         return bycty
 
     def analysis_byregions(self,tradetype, region):
@@ -198,17 +203,20 @@ class Industry(object):
 
         ####
         byregion_pctshare = self.analysis_share_of_overall(byregion,tradetype)
+
+        if byregion.empty:
+            print('here')
+                # drop the useless overall column in pivot table
+        else:
+            byregion = byregion.drop('All', 1)
+
+
         byregion = self.mix_conversion_with_pct(byregion,sorted_period)
         byregion = pd.concat([byregion, byregion_pctshare], axis=1).dropna(axis='columns', how='all')
         byregion.rename(index={'All':region}, inplace=True)
         byregion.index.name = "%s %s %s" % (self.currency, self.money, "(year to date)")
 
-        if byregion.empty:
-            print('here')
-        # drop the useless overall column in pivot table
-        else:
-            byregion = byregion.drop('All', 1)
-            return byregion
+        return byregion
 
     def analysis_byproducts(self, tradetype, codetypeanddigit1, codetypeanddigit2=None, codetypeanddigit3=None):
         self.codetypeanddigit=[codetypeanddigit1, codetypeanddigit2, codetypeanddigit3]
@@ -230,11 +238,13 @@ class Industry(object):
                                   aggfunc=np.sum, margins=True).sort_values(by=self.sorting,ascending=False)
 
         byproduct_pctshare = self.analysis_share_of_overall(byproduct,tradetype)
-        byproduct = self.mix_conversion_with_pct(byproduct,self.periods)
-        byproduct = pd.concat([byproduct, byproduct_pctshare], axis=1).dropna(axis='columns', how='all')
 
         # drop the useless overall column in pivot table
         byproduct = byproduct.drop('All', 1)
+
+        byproduct = self.mix_conversion_with_pct(byproduct,self.periods)
+        byproduct = pd.concat([byproduct, byproduct_pctshare], axis=1).dropna(axis='columns', how='all')
+
         return byproduct
 
     def analysis_share_of_overall(self, tabledata, tradetype):
@@ -378,7 +388,7 @@ if __name__ == '__main__':
     dollar = {'HKD':1, 'USD':7.8}
     unit = {'THOUSAND':10**3, 'MILLION':10**6,'BILLION':10**9}
     currency = 'HKD'
-    money = 'MILLION'
+    money = 'THOUSAND'
 
     # set number of decimals
     numberofdecimal=3
@@ -388,7 +398,7 @@ if __name__ == '__main__':
     startyear, endytd = 2016, 201909
 
     # decide to denote symbol or not
-    needsymbol = False
+    needsymbol = True
     # acquire hsccit data from startyear to endyear and combine them into dataframe
     # acquire hscoit data from startyear to endyear and combine them into dataframe
     # acquire hscoccit data from startyear to endyear and combine them into dataframe
