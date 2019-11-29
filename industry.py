@@ -101,26 +101,22 @@ class Industry(object):
 
         periods = sorted(periods, reverse=False)
 
-        print('tttt')
-        print(periods)
-        print(tablefig)
         yrperiods, ytdperiods =[],[]
         for p in periods:
-            if p[-2:]==12:
+            if int(p[-2:])==12:
                 yrperiods.append(p)
             else: ytdperiods.append(p)
 
+        print(f"yrperiods: {yrperiods}")
+        print(f"ytdperiods: {ytdperiods}")
 
         if int(periods[-1][-2:])!=12:
 
-            print('\ntesting\n')
-            year=tablefig.loc[:,yrperiods]
-            print(year)
-            ytd=tablefig.loc[:,ytdperiods]
-            print(ytd)
-
-            year=tablefig.iloc[:,[0,1,3]].pct_change(axis='columns')
-            ytd=tablefig.iloc[:,[2,4]].pct_change(axis='columns')
+            #print('\ntesting\n')
+            year=tablefig.loc[:,yrperiods].pct_change(axis='columns')
+            #print(year)
+            ytd=tablefig.loc[:,ytdperiods].pct_change(axis='columns')
+            #print(ytd)
             tablepcc=pd.concat([year,ytd],axis=1)
 
         elif int(periods[-1][-2:])==12:
@@ -415,7 +411,7 @@ if __name__ == '__main__':
     startyear, endytd = 2016, 201910
 
     # decide to denote symbol or not
-    needsymbol = True
+    needsymbol = False
     # acquire hsccit data from startyear to endyear and combine them into dataframe
     # acquire hscoit data from startyear to endyear and combine them into dataframe
     # acquire hscoccit data from startyear to endyear and combine them into dataframe
@@ -456,7 +452,7 @@ if __name__ == '__main__':
     # for loop to implement class for each industry
     for k, v in industrycode.items():
         #if k!='Overall':continue
-        if k != '46': continue
+        #if k != '46': continue
         print("key: ",k)
 
         group_no = k
