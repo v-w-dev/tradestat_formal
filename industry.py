@@ -107,8 +107,8 @@ class Industry(object):
                 yrperiods.append(p)
             else: ytdperiods.append(p)
 
-        print(f"yrperiods: {yrperiods}")
-        print(f"ytdperiods: {ytdperiods}")
+        #print(f"yrperiods: {yrperiods}")
+        #print(f"ytdperiods: {ytdperiods}")
 
         if int(periods[-1][-2:])!=12:
 
@@ -299,7 +299,12 @@ class Industry(object):
         #saving to excel files
         original_path = os.getcwd()
         folder_path = "Industry"
-        file_path = folder_path+"/"+self.periods[0]+"-"+self.periods[-1]+"/"+self.currency+"/"+self.money
+        if self.needsymbol:
+            file_path = folder_path+"/"+self.periods[0]+"-"+self.periods[-1]+'_denoted'+"/"+self.currency+"/"+self.money
+        if not self.needsymbol:
+            file_path = folder_path+"/"+self.periods[0]+"-"+self.periods[-1]+'_notdenoted'+"/"+self.currency+"/"+self.money
+
+
         if not os.path.exists(file_path):
             os.makedirs(file_path)
         os.chdir(file_path)
