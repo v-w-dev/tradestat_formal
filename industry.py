@@ -99,17 +99,31 @@ class Industry(object):
         # validate if empty dataframe
         if not periods: return tablefig
 
-        periods = sorted(periods, reverse=True)
+        periods = sorted(periods, reverse=False)
 
         print('tttt')
+        print(periods)
         print(tablefig)
+        yrperiods, ytdperiods =[],[]
+        for p in periods:
+            if p[-2:]==12:
+                yrperiods.append(p)
+            else: ytdperiods.append(p)
 
-        if int(periods[0][-2:])!=12:
+
+        if int(periods[-1][-2:])!=12:
+
+            print('\ntesting\n')
+            year=tablefig.loc[:,yrperiods]
+            print(year)
+            ytd=tablefig.loc[:,ytdperiods]
+            print(ytd)
+
             year=tablefig.iloc[:,[0,1,3]].pct_change(axis='columns')
             ytd=tablefig.iloc[:,[2,4]].pct_change(axis='columns')
             tablepcc=pd.concat([year,ytd],axis=1)
 
-        elif int(periods[0][-2:])==12:
+        elif int(periods[-1][-2:])==12:
             #tablefig=tablefig.drop('All', 1)
             tablepcc=tablefig.pct_change(axis='columns')
         #change pecentage columns name
@@ -398,7 +412,7 @@ if __name__ == '__main__':
 
     print(f"********* {currency} {money}")
     # input periods for the report
-    startyear, endytd = 2016, 201909
+    startyear, endytd = 2016, 201910
 
     # decide to denote symbol or not
     needsymbol = True
