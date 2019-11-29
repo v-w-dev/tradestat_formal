@@ -405,7 +405,7 @@ if __name__ == '__main__':
 
     dollar = {'HKD':1, 'USD':7.8}
     unit = {'THOUSAND':10**3, 'MILLION':10**6,'BILLION':10**9}
-    currency = 'HKD'
+    currency = 'USD'
     money = 'THOUSAND'
 
     # set number of decimals
@@ -452,7 +452,7 @@ if __name__ == '__main__':
     #print("here")
     #print(industrycode)
     # add overall
-    industrycode.update({'Overall':{'industry_name':'Overall', 'code_type':'Overall','codes':'Overall'}})
+    industrycode ={'Overall':{'industry_name':'Overall', 'code_type':'Overall','codes':'Overall'}, **industrycode}
 
     # for loop to implement class for each industry
     for k, v in industrycode.items():
