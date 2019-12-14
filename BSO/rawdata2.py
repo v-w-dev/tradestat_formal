@@ -12,6 +12,7 @@ File names for above namely are:
 Define functions to get raw data from the 3 files, then merge in dataframe
 """
 import pandas as pd
+import numpy as np
 import time
 from .hstositc import get_hstositc_code
 
@@ -28,38 +29,17 @@ def get_hsccit(year, month=12, path=rawdata_folder):
     else:
         print(f"Import from dat file: {file_path}")
 
-    with open(file_path, encoding='utf-8') as file_object:
-        lines = file_object.readlines()
 
-    f1,f2,f3,f6,f7,f10,f11,f14,f15 = ([] for _ in range(9))
 
-    for i, line in enumerate(lines):
-        row = line.strip()
-        # for first row(i==0) in the hsccit.dat file, length of the row is 229 instead of 228.
-        # so need to add +1 for adjustment as following.
-        if i == 0:
-            f1.append(int(row[0+1].strip()))
-            f2.append(str(row[1+1:9+1]))
-            f3.append(int(row[9+1:12+1].strip()))
-            f6.append(int(row[48+1:66+1].strip()))
-            f7.append(int(row[66+1:84+1].strip()))
+    #with open(file_path, encoding='utf-8') as file_object:
+    #    lines = file_object.readlines()
+    col_names = ['f1','f2','f3','f4','f5','f6','f7','f8','f9','f10','f11','f12','f13','f14','f15']
+    col_widths = [1,8,3,18,18,18,18,18,18,18,18,18,18,18,18]
 
-            f10.append(int(row[120+1:138+1].strip()))
-            f11.append(int(row[138+1:156+1].strip()))
-            f14.append(int(row[192+1:210+1].strip()))
-            f15.append(int(row[210+1:228+1].strip()))
-        if i > 0:
-            f1.append(int(row[0].strip()))
-            f2.append(str(row[1:9]))
-            f3.append(int(row[9:12].strip()))
-            f6.append(int(row[48:66].strip()))
-            f7.append(int(row[66:84].strip()))
+    df = pd.read_fwf(file_path, widths=col_widths, names=col_names)
 
-            f10.append(int(row[120:138].strip()))
-            f11.append(int(row[138:156].strip()))
-            f14.append(int(row[192:210].strip()))
-            f15.append(int(row[210:228].strip()))
 
+    """
     df = pd.DataFrame({'f1':f1})
     df['f2'] = f2
     df['f3'] = f3
@@ -92,6 +72,8 @@ def get_hsccit(year, month=12, path=rawdata_folder):
     df['SITC-5'] = [hstositc.get(x, "NA") for x in df.f2]
 
     df['reporting_time'] = f'{year}{month}'
+
+    """
     return df
 
 def get_hscoit(year, month=12, path=rawdata_folder):
@@ -249,12 +231,13 @@ def mergedf(startyear=2016, endperiod=201906, type="hsccit"):
     # final df will exclude gold commodity
     return exclgold(result)
 
+##################################################
 if __name__ == '__main__':
     #calculate time spent
     start_time = time.time()
     print("test")
-    # df = mergedf(startyear=2016, endperiod=201906,type="hsccit")
-    # print(df)
+    df = mergedf(startyear=2016, endperiod=201906,type="hsccit")
+    print(df)
 
     elapsed_time = round(time.time() - start_time, 2)
     print("time used: ", elapsed_time, " seconds")
