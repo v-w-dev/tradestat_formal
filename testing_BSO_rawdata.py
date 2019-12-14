@@ -4,8 +4,8 @@ testing BSO.rawdata2.py
 import timeit
 import pandas as pd
 import time
-from BSO.rawdata import get_hsccit as get_hsccit1
-from BSO.rawdata2 import get_hsccit as get_hsccit2
+from BSO.rawdata import get_hscoccit as get_hsccit1
+from BSO.rawdata2 import get_hscoccit as get_hsccit2
 
 if __name__ == '__main__':
     #calculate time spent
@@ -31,5 +31,3 @@ if __name__ == '__main__':
     #print("time: ", timeit.timeit(hsccit_time1, number=1)/1)
     df=hsccit_time2()
     print("hi")
-    #print(df.iloc[3])
-    #print(df.iloc[:,1])
