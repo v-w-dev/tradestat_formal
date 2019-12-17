@@ -3,7 +3,7 @@ import numpy as np
 import export.export_file as ex
 import time
 import os
-from BSO.rawdata import mergedf
+from BSO.merge import mergedf
 from BSO.geography import get_geography_code, get_geography_regcnty_code
 from BSO.industry import get_industry_code
 

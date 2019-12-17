@@ -2,7 +2,7 @@ import time
 import pyprind
 import os
 from world import Report1
-from BSO.rawdata import mergedf
+from BSO.merge import mergedf
 from BSO.geography import get_geography_code
 from BSO.R1_figures import six_trades_ranking_bycty_multi_yrs, find_all_trades_ranking
 

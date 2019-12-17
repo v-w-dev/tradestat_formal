@@ -2,7 +2,7 @@ import time
 import pyprind
 import os
 from world import Report1
-from BSO.rawdata import mergedf
+from BSO.merge import mergedf
 from BSO.geography import get_geography_code, get_geography_regcnty_code
 
 class Area_Report1(Report1):

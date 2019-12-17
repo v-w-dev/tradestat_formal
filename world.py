@@ -2,7 +2,7 @@ import pandas as pd
 import time
 import pyprind
 import os
-from BSO.rawdata import mergedf
+from BSO.merge import mergedf
 from BSO.R1_figures import country_R1_fig, major_commodity_fig
 import export.export_file as ex
 
