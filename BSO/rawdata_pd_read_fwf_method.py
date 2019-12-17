@@ -30,12 +30,19 @@ def get_hsccit(year, month=12, path=rawdata_folder):
     else:
         print(f"Import from dat file: {file_path}")
 
-    col_names = ['f1','f2','f3','f4','f5','f6','f7','f8','f9','f10','f11','f12','f13','f14','f15']
-    col_widths = [1,8,3,18,18,18,18,18,18,18,18,18,18,18,18]
+    col_names = ['f1','f2','f3','f6','f7','f10','f11','f14','f15']
+    #col_widths = [1,8,3,18,18,18,18,18,18,18,18,18,18,18,18]
 
-    df = pd.read_fwf(file_path, widths=col_widths, names=col_names,
+    df = pd.read_fwf(file_path,
+                    colspecs=[(0,1),(1,9),(9,12),
+                    (48,66),(66,84),
+                    (120,138),(138,156),
+                    (192,210),(210,228)],
+                    #widths=col_widths,
+                    names=col_names,
                     converters={1:str})
     # select transaction type 1 (HS-8digit) only
+    #print(df)
     HS8only = df.f1.isin([1])
     df = df[HS8only]
 
@@ -77,10 +84,14 @@ def get_hscoit(year, month=12, path=rawdata_folder):
         print(f"Import from dat file: {file_path}")
 
     # select for transaction type 1 (HS-8digit) only
-    col_names = ['f1','f2','f3','f4','f5','f6','f7']
-    col_widths = [1,8,3,18,18,18,18]
+    col_names = ['f1','f2','f3','f6','f7']
+    #col_widths = [1,8,3,18,18,18,18]
 
-    df = pd.read_fwf(file_path, widths=col_widths, names=col_names,
+    df = pd.read_fwf(file_path,
+                    colspecs=[(0,1),(1,9),(9,12),
+                    (48,66),(66,84)],
+                    #widths=col_widths,
+                    names=col_names,
                     converters={1:str})
 
     HS8only = df.f1.isin([1])
@@ -113,39 +124,7 @@ def get_hscoccit(year, month=12, path=rawdata_folder):
         print(f"Import from txt file: {file_path}")
     else:
         print(f"Import from dat file: {file_path}")
-    """
-    with open(file_path, encoding='utf-8') as file_object:
-        lines = file_object.readlines()
-
-    f1,f2,f3,f4,f5,f6,f7,f8 = [],[],[],[],[],[],[],[]
-
-    for i, line in enumerate(lines):
-        row = line.strip()
-        # for first row(i==0) in the hsccit.dat file, length of the row is 229 instead of 228.
-        # so need to add +1 for adjustment as following.
-        if i == 0:
-            f1.append(int(row[0+1].strip()))
-            f2.append(str(row[1+1:9+1]))
-            f3.append(int(row[9+1:12+1].strip()))
-            f4.append(int(row[12+1:15+1].strip()))
-            f7.append(int(row[51+1:69+1].strip()))
-            f8.append(int(row[69+1:87+1].strip()))
-
-        if i > 0:
-            f1.append(int(row[0].strip()))
-            f2.append(str(row[1:9]))
-            f3.append(int(row[9:12].strip()))
-            f4.append(int(row[12:15].strip()))
-            f7.append(int(row[51:69].strip()))
-            f8.append(int(row[69:87].strip()))
-
-    df = pd.DataFrame({'f1':f1})
-    df['f2']=f2
-    df['f3']=f3
-    df['f4']=f4
-    df['RXbyO']=f7
-    df['RXbyO_Q']=f8
-    """
+    
     col_names = ['f1','f2','f3','f4','f5','f6','f7','f8']
     col_widths = [1,8,3,3,18,18,18,18]
 
