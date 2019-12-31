@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['country.py'],
-             pathex=['C:\\Users\\viwong\\Desktop\\tradestat_formal'],
+             pathex=['D:\\GitHub\\tradestat_formal'],
              binaries=[],
              datas=[],
              hiddenimports=[],

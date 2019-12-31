@@ -55,6 +55,9 @@ if __name__ == '__main__':
 
     # loop all area reports
     for cty_code, cty_name in cty_dict.items():
+        ##below line for 1 country
+        ##if cty_code!=631:continue
+
         # find out the ranks of the country for all trades
         cty = Country_Report1(cty_code,cty_name,startyear,endytd,toprank,report_type="Country")
 
