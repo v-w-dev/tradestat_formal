@@ -43,7 +43,7 @@ class Industry(object):
         self.currency = currency
         self.money = money
         self.needsymbol = needsymbol
-        print( type(periods),' ', periods, ' ',periods[-1][-2:])
+        print(type(periods),' ', periods, ' ',periods[-1][-2:])
         if len(periods)==4 and periods[-1][-2:]=='12':
             self.sorting=[periods[-1],periods[-2],periods[-3],periods[-4]]
         if len(periods)==5 and periods[-1][-2:]!='12':
@@ -405,7 +405,7 @@ if __name__ == '__main__':
 
     dollar = {'HKD':1, 'USD':7.8}
     unit = {'THOUSAND':10**3, 'MILLION':10**6,'BILLION':10**9}
-    currency = 'USD'
+    currency = 'HKD'
     money = 'MILLION'
 
     # set number of decimals
@@ -413,7 +413,7 @@ if __name__ == '__main__':
 
     print(f"********* {currency} {money}")
     # input periods for the report
-    startyear, endytd = 2016, 201911
+    startyear, endytd = 2018, 201911
 
     # decide to denote symbol or not
     needsymbol = False
@@ -438,11 +438,12 @@ if __name__ == '__main__':
     df3.rename(columns={'f2':'HS-8','f3':'f3_origin','f4':'f4_destination'}, inplace=True)
 
     #boolean for overall data for all periods in an excel file
-    overall = False
+    overall = True
 
     #export the overall data excel file
     if overall:
-        writer = pd.ExcelWriter(f'overall.xlsx')
+        print("Export the overall data excel file...")
+        writer = pd.ExcelWriter(f'overall_{startyear}-{endytd}.xlsx')
         df1.to_excel(writer,"df1")
         df2.to_excel(writer,"df2")
         df3.to_excel(writer,"df3")
