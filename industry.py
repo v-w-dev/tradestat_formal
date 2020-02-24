@@ -413,10 +413,10 @@ if __name__ == '__main__':
 
     print(f"********* {currency} {money}")
     # input periods for the report
-    startyear, endytd = 2018, 201911
+    startyear, endytd = 2016, 2019
 
     # decide to denote symbol or not
-    needsymbol = False
+    needsymbol = True
     # acquire hsccit data from startyear to endyear and combine them into dataframe
     # acquire hscoit data from startyear to endyear and combine them into dataframe
     # acquire hscoccit data from startyear to endyear and combine them into dataframe
@@ -438,7 +438,7 @@ if __name__ == '__main__':
     df3.rename(columns={'f2':'HS-8','f3':'f3_origin','f4':'f4_destination'}, inplace=True)
 
     #boolean for overall data for all periods in an excel file
-    overall = True
+    overall = False
 
     #export the overall data excel file
     if overall:
