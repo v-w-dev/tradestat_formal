@@ -405,7 +405,7 @@ if __name__ == '__main__':
 
     dollar = {'HKD':1, 'USD':7.8}
     unit = {'THOUSAND':10**3, 'MILLION':10**6,'BILLION':10**9}
-    currency = 'USD'
+    currency = 'HKD'
     money = 'MILLION'
 
     # set number of decimals
@@ -413,10 +413,10 @@ if __name__ == '__main__':
 
     print(f"********* {currency} {money}")
     # input periods for the report
-    startyear, endytd = 2017, 202001
+    startyear, endytd = 2016, 2017
 
     # decide to denote symbol or not
-    needsymbol = True
+    needsymbol = False
     # acquire hsccit data from startyear to endyear and combine them into dataframe
     # acquire hscoit data from startyear to endyear and combine them into dataframe
     # acquire hscoccit data from startyear to endyear and combine them into dataframe
@@ -438,7 +438,7 @@ if __name__ == '__main__':
     df3.rename(columns={'f2':'HS-8','f3':'f3_origin','f4':'f4_destination'}, inplace=True)
 
     #boolean for overall data for all periods in an excel file
-    overall = False
+    overall = True
 
     #export the overall data excel file
     if overall:
