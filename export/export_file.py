@@ -296,7 +296,7 @@ def addcomma_align(excel_name):
 
     wb.save(excel_name)
 
-def addtitle(excel_name, industryname):
+def addtitle(excel_name, industryname, EU_name="E.U. (excl. UK)"):
     # find the hyphen position and delete it
     positionhyphen = industryname[:8].find('-')
     if positionhyphen!=-1: industryname=industryname[positionhyphen+2:]
@@ -324,13 +324,13 @@ def addtitle(excel_name, industryname):
               f"Hong Kong's Imports of {industryname} by Country as Origin by Quantity", #11
               f"Hong Kong's Total Trades of {industryname} by Country by Quantity", #8
               # EU
-              f"Hong Kong's Domestic Exports of {industryname} by E.U.(28)", #12
-              f"Hong Kong's Total Exports of {industryname} by E.U.(28)", #13
-              f"Hong Kong's Re-exports of {industryname} by E.U.(28) as Destination", #4
-              f"Hong Kong's Re-exports of {industryname} by E.U.(28) as Origin", #4
-              f"Hong Kong's Imports of {industryname} by E.U.(28) as Consignment", #5
-              f"Hong Kong's Imports of {industryname} by E.U.(28) as Origin", #6
-              f"Hong Kong's Total Trades of {industryname} by E.U.(28)", #3
+              f"Hong Kong's Domestic Exports of {industryname} by {EU_name}", #12
+              f"Hong Kong's Total Exports of {industryname} by {EU_name}", #13
+              f"Hong Kong's Re-exports of {industryname} by {EU_name} as Destination", #4
+              f"Hong Kong's Re-exports of {industryname} by {EU_name} as Origin", #4
+              f"Hong Kong's Imports of {industryname} by {EU_name} as Consignment", #5
+              f"Hong Kong's Imports of {industryname} by {EU_name} as Origin", #6
+              f"Hong Kong's Total Trades of {industryname} by {EU_name}", #3
 
               # Asean
               f"Hong Kong's Domestic Exports of {industryname} by Asean", #14

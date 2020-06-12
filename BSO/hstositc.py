@@ -42,5 +42,5 @@ if __name__ == '__main__':
     print("conversion of HS 85285291: SITC %s" % adict['85285291'])
 
     print("2) example for geting SITC-3 product name")
-    b = get_sitc3_name()
-    print("SITC-3-digit '001' product name: %s" %b['001'])
+    b = get_sitc_name()
+    print("SITC-3-digit '001' product name: %s" % list(map(b.get, ['001','011'])))
