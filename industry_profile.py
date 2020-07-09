@@ -424,10 +424,10 @@ if __name__ == '__main__':
 
     print(f"********* {currency} {money}")
     # input periods for the report
-    startyear, endytd = 2017, 202004
+    startyear, endytd = 2017, 202005
 
     # decide to denote symbol or not
-    needsymbol = True
+    needsymbol = False
     # acquire hsccit data from startyear to endyear and combine them into dataframe
     # acquire hscoit data from startyear to endyear and combine them into dataframe
     # acquire hscoccit data from startyear to endyear and combine them into dataframe
