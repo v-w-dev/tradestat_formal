@@ -156,8 +156,10 @@ def trades_ranking_bycty(df, countrydict={}, field='TX', periods=[]):
 
     trade_ranking = field_df.sort_values(by=[periods[-1]], ascending=False)
 
+    # How to rank the group of records that have the same value (i.e. ties):
+    # min: lowest rank in the group
     # add ranking
-    trade_ranking[periods[-1] + "rank"] = trade_ranking[periods[-1]].rank(ascending=False).astype('int')
+    trade_ranking[periods[-1] + "rank"] = trade_ranking[periods[-1]].rank(ascending=False,method="min")
     trade_ranking["cty_code"] = trade_ranking.index
 
     # acquire cty name to merge with the trade_ranking dataframe
@@ -166,7 +168,6 @@ def trades_ranking_bycty(df, countrydict={}, field='TX', periods=[]):
     s = pd.Series(data = ranking_cty_names, index=trade_ranking.index, name="Country")
     ctyname = pd.DataFrame(s)
     table = pd.merge(ctyname, trade_ranking, left_index=True, right_index=True)
-
     return table
 
 def trades_ranking_bycty_multi_yrs(df, countrydict={}, field='TX', periods=[],num=300):

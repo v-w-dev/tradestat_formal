@@ -49,6 +49,7 @@ if __name__ == '__main__':
     type_list = ['TX','DX','RX','IM','RXbyO','TT']
     print("Calculating ranking...please wait for a while.")
     rankdf_list = six_trades_ranking_bycty_multi_yrs(df1,df3,countrydict=cty_dict,periods=periods,num=rank_periods)
+    
     print("Ranking completed.")
 
     currentdir = os.getcwd()
