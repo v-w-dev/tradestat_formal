@@ -8,6 +8,9 @@ geo_file = './metadata/geography.xlsx'
 
 # get the codes for individual country, default is from sheet("country")
 def get_geography_code(sheet="country",bk=geo_file):
+    """
+    get codes from Area, Region, country sheets only
+    """
     book = open_workbook(bk)
     sheet = book.sheet_by_name(sheet)
 
@@ -15,6 +18,11 @@ def get_geography_code(sheet="country",bk=geo_file):
     for row in range(sheet.nrows):
         if row == 0:
             continue
+
+        # if ADMIN_CODE is 'N', Area
+        if sheet.cell(row,3).value == 'N':
+            continue
+
         geography[int(sheet.cell(row,0).value)] = sheet.cell(row,1).value
     return geography
 
