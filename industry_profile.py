@@ -424,7 +424,7 @@ if __name__ == '__main__':
 
     print(f"********* {currency} {money}")
     # input periods for the report
-    startyear, endytd = 2017, 202010
+    startyear, endytd = 2017, 2020
 
     # decide to denote symbol or not
     needsymbol = False
@@ -459,7 +459,7 @@ if __name__ == '__main__':
         df2.to_excel(writer,"df2")
         df3.to_excel(writer,"df3")
         writer.save()
-
+    #exit()
     industrycode = get_industry_code()
     #print("here")
     #print(industrycode)

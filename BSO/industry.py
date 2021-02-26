@@ -5,6 +5,8 @@ The code file is imported from the folder "./metadata"
 import pprint
 from xlrd import open_workbook
 from collections import OrderedDict
+from .hstositc import get_hstositc_code
+import pandas as pd
 
 industry_file = './metadata/industry.xlsx'
 
@@ -43,10 +45,36 @@ def get_industry_code(excel_file=industry_file):
     return industry
 
 if __name__ == '__main__':
+    hstositc_dict = get_hstositc_code()
     industry_dict = get_industry_code()
+
+    #print(hstositc_dict)
+    print(industry_dict['84'])
+    codeType = industry_dict['84']['code_type'][0]
+    codes = industry_dict['84']['codes']
+
+    print(codeType)
+    if codeType=="SITC":
+        HS_code_list=[]
+        for k, v in hstositc_dict.items():
+            for vcode in v:
+                for c in codes:
+                    if len(c)==3:
+                        if str(c) == str(v[0:3]):
+                            HS_code_list.append(k)
+                    elif len(c)==5:
+                        if str(c) == str(v):
+                            HS_code_list.append(k)
+        HS_code_list = sorted(set(HS_code_list))
+        pprint.pprint(HS_code_list)
+        pd.DataFrame(HS_code_list).to_excel("electronics.xlsx")
+
+
+    """
     for k, v in industry_dict.items():
         print("Industry group code: %s" % k)
         print("Industry group name: %s" % v['industry_name'])
         print("Industry group product codes' type: %s" % v['code_type'])
         pprint.pprint("codes %s" % (v['codes']))
         print("\n")
+    """
