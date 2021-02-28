@@ -19,7 +19,7 @@ def get_geography_code(sheet="country",bk=geo_file):
         if row == 0:
             continue
 
-        # if ADMIN_CODE is 'N', Area
+        # if ADMIN_CODE is 'N', ignore
         if sheet.cell(row,3).value == 'N':
             continue
 
